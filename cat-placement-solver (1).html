@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAT / placement puzzle solver</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--panel2:#182239;--line:#2b3853;--text:#edf2ff;--muted:#9eacc7;--accent:#a9f27f;--accent2:#8ed3ff;--danger:#ff7187;--shadow:0 18px 50px #0004}
+[data-theme="light"]{color-scheme:light;--bg:#f3f6fb;--panel:#fff;--panel2:#f5f7fc;--line:#dce3ef;--text:#172238;--muted:#64718a;--accent:#367a23;--accent2:#166c9f;--danger:#bd2947;--shadow:0 16px 40px #23345212}
+[data-theme="light"] .swatch{color:#172238;background:#fff}
+[data-theme="light"] .field select,[data-theme="light"] .field input{background:#fff;color:#172238}
+[data-theme="light"] .cell{box-shadow:inset 0 0 0 1px #00000020}
+[data-theme="light"] .cell.cat{box-shadow:inset 0 0 0 2px #0005,0 0 0 1px #172238}
+[data-theme="light"] .swatch-chip{box-shadow:inset 0 0 0 1px #0003}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.01em}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.app{max-width:1500px;margin:auto;padding:28px clamp(14px,3vw,36px) 42px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:25px}.brand{display:flex;align-items:center;gap:13px}.logo{display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:var(--accent);color:#15220f;font-size:24px;box-shadow:0 8px 24px #0002}.eyebrow{font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--muted);text-transform:uppercase}.brand h1{font-size:22px;letter-spacing:-.04em;margin:2px 0 0}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 13px;font-weight:650;transition:transform .12s,border-color .12s,background .12s}.btn:hover{border-color:var(--accent2);transform:translateY(-1px)}.btn.primary{background:var(--accent);border-color:transparent;color:#172313}.btn.danger{color:var(--danger)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.intro{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:20px}.intro h2{font-size:clamp(22px,3vw,31px);letter-spacing:-.045em;margin:0 0 6px}.intro p{color:var(--muted);margin:0;max-width:680px}.status-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--muted);white-space:nowrap;font-size:12px}.dot{width:7px;height:7px;background:var(--accent);border-radius:50%}
+.layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:18px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow);overflow:hidden}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 19px;border-bottom:1px solid var(--line)}.panel-head h3{margin:0;font-size:14px;letter-spacing:-.01em}.panel-head p{margin:3px 0 0;color:var(--muted);font-size:12px}.panel-body{padding:18px}.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.field{display:flex;flex-direction:column;gap:6px;min-width:115px}.field label{font-size:11px;color:var(--muted);font-weight:750;text-transform:uppercase;letter-spacing:.08em}.field select,.field input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--text);padding:9px 10px}.field select option{background:var(--panel)}.grid-wrap{padding:18px;display:flex;justify-content:center;overflow:auto}.board{--n:8;display:grid;grid-template-columns:repeat(var(--n),minmax(24px,1fr));gap:4px;width:min(100%,690px);aspect-ratio:1;align-content:start;user-select:none;touch-action:pan-y}.cell{position:relative;aspect-ratio:1;min-width:0;border:2px solid #0000;border-radius:6px;display:grid;place-items:center;padding:0;transition:filter .12s,transform .12s,border-color .12s;overflow:hidden;box-shadow:inset 0 0 0 1px #00000013}.cell:hover{filter:brightness(1.1);z-index:1}.cell:focus-visible{outline:2px solid var(--accent2);outline-offset:1px}.cell.cat{border-color:var(--text);box-shadow:inset 0 0 0 2px #0003,0 0 0 1px var(--text)}.cat-glyph{font-size:clamp(13px,2.2vw,25px);filter:drop-shadow(0 1px 1px #0005);line-height:1}.cell.candidate:after{content:"";position:absolute;width:28%;height:28%;border-radius:50%;border:2px solid var(--text);background:#ffffff99}.cell.selected{outline:3px solid var(--accent2);outline-offset:-3px}.cell.conflict{box-shadow:inset 0 0 0 3px var(--danger)}.cell.conflict:before{content:"!";position:absolute;top:1px;right:3px;font-weight:900;color:#fff;background:var(--danger);border-radius:99px;width:14px;height:14px;display:grid;place-items:center;font-size:10px;z-index:3}.board-caption{display:flex;justify-content:space-between;gap:12px;padding:0 18px 17px;color:var(--muted);font-size:12px}.palette{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.swatch{border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--text);min-width:0}.swatch.active{border-color:var(--accent2);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent2) 22%,transparent)}.swatch-chip{width:25px;height:25px;border-radius:7px;box-shadow:inset 0 0 0 1px #0002}.none-chip{background:repeating-conic-gradient(#aab4c4 0% 25%,#f8fafc 0% 50%) 50%/10px 10px;border:1px solid var(--line)}.swatch span:last-child{font-size:10px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.tool-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.section-label{font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin:0 0 11px}.right-col{display:grid;gap:18px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.stat{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:12px}.stat strong{display:block;font-size:23px;letter-spacing:-.04em}.stat span{font-size:11px;color:var(--muted)}.notice{border:1px solid var(--line);background:var(--panel2);border-radius:11px;padding:12px 13px;color:var(--muted);font-size:12px;margin-top:12px}.notice strong{color:var(--text)}.notice.warn{border-color:color-mix(in srgb,var(--danger) 55%,var(--line));color:var(--text)}.notice.good{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}.results{display:grid;gap:10px}.result-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2)}.result-top{display:flex;align-items:center;gap:9px}.mini-chip{width:13px;height:13px;border-radius:4px;flex:none}.result-top strong{font-size:13px}.result-top .coord{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}.result-card p{margin:8px 0 0;color:var(--muted);font-size:12px}.result-card ul{margin:8px 0 0;padding-left:19px;color:var(--text);font-size:12px}.result-card li{margin:5px 0}.result-card .subtle{color:var(--muted)}.step-list{display:grid;gap:8px}.step{display:grid;grid-template-columns:27px 1fr;gap:9px;align-items:start}.step-num{width:25px;height:25px;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:11px;font-weight:800;color:var(--accent2)}.step p{margin:2px 0 0;font-size:12px}.step small{color:var(--muted)}.empty{padding:22px 10px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--line);border-radius:12px}.footnote{margin-top:17px;color:var(--muted);font-size:11px}.hidden{display:none!important}.inline-check{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.inline-check input{accent-color:var(--accent)}.modal-backdrop{position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:18px;z-index:10}.modal{width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}.modal h3{margin:0 0 8px}.modal p,.modal li{font-size:13px;color:var(--muted)}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.right-col{grid-template-columns:1fr 1fr}.right-col .full{grid-column:1/-1}.board{width:min(100%,620px)}}@media(max-width:620px){.app{padding:16px 11px 30px}.topbar{align-items:flex-start}.brand h1{font-size:18px}.logo{width:39px;height:39px}.top-actions .btn{padding:8px 9px;font-size:12px}.intro{align-items:flex-start;flex-direction:column}.status-pill{white-space:normal}.panel-body{padding:13px}.grid-wrap{padding:12px 8px}.board{gap:3px;grid-template-columns:repeat(var(--n),minmax(18px,1fr))}.cell{border-radius:4px}.palette{grid-template-columns:repeat(4,minmax(0,1fr))}.right-col{grid-template-columns:1fr}.right-col .full{grid-column:auto}.field{flex:1}.board-caption{padding:0 10px 12px}}
+</style>
+</head>
+<body>
+<div class="app" id="app" data-theme="dark">
+  <header class="topbar">
+    <div class="brand"><div class="logo" aria-hidden="true">♟</div><div><div class="eyebrow">logic lab / 01</div><h1>cat placement solver</h1></div></div>
+    <div class="top-actions"><button class="btn" id="themeBtn">☼ light mode</button><button class="btn" id="helpBtn">rules & logic</button></div>
+  </header>
+  <section class="intro"><div><h2>paint the board. prove the placement.</h2></div><div class="status-pill"><span class="dot"></span><span id="topStatus">ready for a puzzle</span></div></section>
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-head"><div><h3>01 / puzzle canvas</h3><p>Choose a paint colour, then click or drag across cells.</p></div><button class="btn" id="clearBtn">clear board</button></div>
+      <div class="panel-body">
+        <div class="controls">
+          <div class="field"><label for="sizeSelect">board size</label><select id="sizeSelect"><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option><option>9</option><option>10</option></select></div>
+          <div class="field"><label for="maxRegion">max region cells</label><select id="maxRegion"><option value="0">no limit</option><option value="4">4 cells</option><option value="5">5 cells</option><option value="6">6 cells</option><option value="7">7 cells</option><option value="8">8 cells</option><option value="9">9 cells</option><option value="10" selected>10 cells</option><option value="12">12 cells</option><option value="15">15 cells</option><option value="20">20 cells</option><option value="25">25 cells</option></select></div>
+          <div class="field"><label for="modeSelect">paint action</label><select id="modeSelect"><option value="paint">paint selected colour</option><option value="erase">erase cell</option><option value="cat">place / remove cat</option></select></div>
+          <div class="field"><label for="puzzleName">puzzle name</label><input id="puzzleName" maxlength="50" placeholder="my puzzle"></div>
+        </div>
+      </div>
+      <div class="grid-wrap"><div class="board" id="board" role="grid" aria-label="Puzzle grid"></div></div>
+      <div class="board-caption"><span id="boardCount">64 cells · 0 painted</span><span>row / column coordinates start at 1</span></div>
+      <div class="panel-body" style="padding-top:0">
+        <p class="section-label">colour palette</p>
+        <div class="palette" id="palette"></div>
+        <div class="tool-row"><button class="btn" id="undoBtn" disabled>↶ undo</button><button class="btn" id="redoBtn" disabled>↷ redo</button><button class="btn" id="validateBtn">validate grid</button><button class="btn primary" id="solveBtn">solve puzzle →</button></div>
+        <div class="notice" id="paintHint">Select a palette colour to begin painting. Each colour must occupy one orthogonally connected region. The solver will check this before searching.</div>
+      </div>
+    </section>
+    <aside class="right-col">
+      <section class="panel">
+        <div class="panel-head"><div><h3>02 / board diagnostics</h3><p>Live structural checks</p></div><span class="eyebrow" id="diagBadge">idle</span></div>
+        <div class="panel-body"><div class="stats"><div class="stat"><strong id="paintedStat">0</strong><span>painted cells</span></div><div class="stat"><strong id="colourStat">0</strong><span>colours used</span></div><div class="stat"><strong id="catStat">0</strong><span>manual cats</span></div></div><div id="diagnostics"><div class="empty">Paint the board to begin validation.</div></div></div>
+      </section>
+      <section class="panel full">
+        <div class="panel-head"><div><h3>03 / next deduction</h3><p>Forced placements only, never a guess</p></div><button class="btn" id="nextBtn" disabled>next step</button></div>
+        <div class="panel-body"><div id="nextResult"><div class="empty">Run the solver to calculate valid placements and deductions.</div></div><div class="tool-row"><button class="btn" id="applyStepBtn" disabled>place this cat</button><button class="btn" id="removeCatsBtn">remove all cats</button></div></div>
+      </section>
+      <section class="panel full">
+        <div class="panel-head"><div><h3>04 / candidate locations</h3><p>Remaining cells grouped by colour</p></div><label class="inline-check"><input type="checkbox" id="candidateToggle" checked> show on grid</label></div>
+        <div class="panel-body"><div id="candidateResults" class="results"><div class="empty">Candidates appear after solving.</div></div></div>
+      </section>
+      <section class="panel full">
+        <div class="panel-head"><div><h3>05 / deduction history</h3><p>Solver findings and manual actions</p></div><button class="btn" id="clearHistoryBtn">clear</button></div>
+        <div class="panel-body"><div id="history" class="step-list"><div class="empty">No steps yet.</div></div></div>
+      </section>
+    </aside>
+  </main>
+</div>
+<div id="modalRoot"></div>
+<script>
+(() => {
+"use strict";
+const COLORS = [
+ {name:"light green",hex:"#b9edaa",ink:"#243b20"},{name:"light pink",hex:"#ffc8dc",ink:"#57243a"},
+ {name:"hot pink",hex:"#f34b9c",ink:"#fff"},{name:"red",hex:"#ed5559",ink:"#fff"},
+ {name:"blue",hex:"#5299f5",ink:"#fff"},{name:"navy blue",hex:"#253d78",ink:"#fff"},
+ {name:"teal",hex:"#39c6b0",ink:"#123b36"},{name:"grey",hex:"#9aa5b5",ink:"#202938"},
+ {name:"brown",hex:"#a56b48",ink:"#fff"},{name:"purple",hex:"#a78bfa",ink:"#27154f"},
+ {name:"orange",hex:"#ff9d43",ink:"#4a2605"},{name:"yellow",hex:"#f5d65e",ink:"#473900"}
+];
+const $ = id => document.getElementById(id);
+let n=8, cells=[], cats=new Set(), selected=0, mode="paint", theme="dark", showCandidates=true;
+let undoStack=[], redoStack=[], solutions=[], candidateMap=new Map(), forcedSteps=[], stepIndex=0, history=[];
+let lastAnalysis=null, isDragging=false, dragValue=null, paintVisited=new Set();
+const MAX_SOLUTIONS=20000;
+const key=(r,c)=>r*n+c, rc=i=>({r:Math.floor(i/n),c:i%n}), coord=i=>{const p=rc(i);return `r${p.r+1} · c${p.c+1}`};
+const neighbours=(i,diagonal=false)=>{const {r,c}=rc(i),out=[];for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;if(!diagonal&&Math.abs(dr)+Math.abs(dc)!==1)continue;const rr=r+dr,cc=c+dc;if(rr>=0&&rr<n&&cc>=0&&cc<n)out.push(key(rr,cc));}return out};
+function snapshot(){return {cells:[...cells],cats:[...cats],selected,mode}}
+function restore(s){cells=[...s.cells];cats=new Set(s.cats);selected=s.selected;mode=s.mode;invalidate();renderAll()}
+function pushUndo(){undoStack.push(snapshot());if(undoStack.length>100)undoStack.shift();redoStack=[];updateUndoButtons()}
+function undo(){if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());addHistory("undo","Reverted the previous board edit.");updateUndoButtons()}
+function redo(){if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());addHistory("redo","Restored the next board state.");updateUndoButtons()}
+function updateUndoButtons(){$("undoBtn").disabled=!undoStack.length;$("redoBtn").disabled=!redoStack.length}
+function invalidate(){lastAnalysis=null;solutions=[];candidateMap.clear();forcedSteps=[];stepIndex=0;$("nextBtn").disabled=true;$("applyStepBtn").disabled=true;$("nextResult").innerHTML='<div class="empty">Run the solver to calculate valid placements and deductions.</div>';$("candidateResults").innerHTML='<div class="empty">Candidates appear after solving.</div>';$("diagnostics").innerHTML='<div class="empty">Paint the board to begin validation.</div>';$("diagBadge").textContent="idle";$("topStatus").textContent="ready for a puzzle";renderBoard()}
+function addHistory(kind,message){history.unshift({kind,message});if(history.length>40)history.pop();renderHistory()}
+function initCells(size){n=size;cells=Array(n*n).fill(-1);cats.clear();undoStack=[];redoStack=[];history=[];invalidate();renderAll();addHistory("board",`Created a ${n}×${n} board.`)}
+function renderPalette(){$("palette").innerHTML="";const none=document.createElement("button");none.className="swatch"+(mode==="erase"?" active":"");none.title="none / erase";none.setAttribute("aria-pressed",String(mode==="erase"));none.innerHTML='<span class="swatch-chip none-chip"></span><span>none</span>';none.onclick=()=>{selected=-1;mode="erase";$("modeSelect").value="erase";renderPalette();$("paintHint").textContent="None selected. Click or drag across cells to erase their colour and any cat."};$("palette").appendChild(none);COLORS.forEach((col,i)=>{const b=document.createElement("button");b.className="swatch"+(selected===i&&mode==="paint"?" active":"");b.title=col.name;b.setAttribute("aria-pressed",String(selected===i&&mode==="paint"));b.innerHTML=`<span class="swatch-chip" style="background:${col.hex}"></span><span>${col.name}</span>`;b.onclick=()=>{selected=i;mode="paint";$("modeSelect").value="paint";renderPalette();$("paintHint").textContent=`Selected ${col.name}. Click or drag across cells to paint.`};$("palette").appendChild(b)})}
+function renderBoard(){
+ const board=$("board");board.style.setProperty("--n",n);board.innerHTML="";
+ for(let i=0;i<cells.length;i++){const col=cells[i]>=0?COLORS[cells[i]]:null;const b=document.createElement("button");b.className="cell";b.setAttribute("role","gridcell");b.setAttribute("aria-label",`${coord(i)}, ${col?col.name:"unpainted"}${cats.has(i)?", cat":""}`);b.title=`${coord(i)} · ${col?col.name:"unpainted"}`;
+  if(col){b.style.background=col.hex;b.style.color=col.ink}
+  if(cats.has(i)){b.classList.add("cat");b.innerHTML='<span class="cat-glyph" aria-hidden="true">🐈</span>'}
+  if(showCandidates&&candidateMap.has(i)&&!cats.has(i)){b.classList.add("candidate");b.title+=` · candidate for ${candidateMap.get(i).map(c=>COLORS[c].name).join(", ")}`}
+  if(lastAnalysis?.conflicts?.has(i))b.classList.add("conflict");
+  b.onpointerdown=e=>{if(e.button!==0)return;isDragging=true;paintVisited=new Set();performCellAction(i,true);e.preventDefault()};
+  b.onpointerenter=()=>{if(isDragging)performCellAction(i,false)};
+  b.onpointerup=()=>{isDragging=false};
+  b.onclick=()=>{};board.appendChild(b);
+ }
+ $("boardCount").textContent=`${n*n} cells · ${cells.filter(c=>c>=0).length} painted`;
+ $("paintedStat").textContent=cells.filter(c=>c>=0).length;
+ $("colourStat").textContent=new Set(cells.filter(c=>c>=0)).size;
+ $("catStat").textContent=cats.size;
+}
+window.addEventListener("pointerup",()=>{isDragging=false;paintVisited.clear()});
+function performCellAction(i,first){
+ if(paintVisited.has(i))return;paintVisited.add(i);
+ if(first)pushUndo();
+ if(mode==="paint"){cells[i]=selected;cats.delete(i)}
+ else if(mode==="erase"){cells[i]=-1;cats.delete(i)}
+ else {if(cats.has(i))cats.delete(i);else cats.add(i)}
+ invalidate();renderPalette();renderBoard();
+}
+function renderAll(){renderPalette();renderBoard();renderHistory();updateUndoButtons();updateThemeButton()}
+function usedColors(){return [...new Set(cells.filter(x=>x>=0))].sort((a,b)=>a-b)}
+function connectedComponents(){
+ const unseen=new Set(cells.map((v,i)=>v>=0?i:-1).filter(i=>i>=0)), comps=[];
+ while(unseen.size){const start=unseen.values().next().value,color=cells[start],stack=[start],component=[];unseen.delete(start);
+  while(stack.length){const i=stack.pop();component.push(i);for(const j of neighbours(i)){if(unseen.has(j)&&cells[j]===color){unseen.delete(j);stack.push(j)}}}
+  comps.push({color,cells:component});
+ }return comps;
+}
+function analyze(){
+ const conflicts=new Set(), errors=[], warnings=[], used=usedColors(), comps=connectedComponents(), byColor=new Map();
+ for(const comp of comps){if(!byColor.has(comp.color))byColor.set(comp.color,[]);byColor.get(comp.color).push(comp)}
+ if(cells.some(x=>x<0))warnings.push(`${cells.filter(x=>x<0).length} cell(s) are unpainted. Every cell must be assigned a colour before the solver can prove a solution.`);
+ for(const color of used){const groups=byColor.get(color)||[];if(groups.length!==1){errors.push(`${COLORS[color].name} forms ${groups.length} separate orthogonal regions; each colour must form exactly one connected region.`);groups.forEach(g=>g.cells.forEach(i=>conflicts.add(i)))}
+  for(const g of groups){const max=Number($("maxRegion").value);if(max>0&&g.cells.length>max){errors.push(`${COLORS[color].name} has a region of ${g.cells.length} cells, exceeding the configured limit of ${max}.`);g.cells.forEach(i=>conflicts.add(i))}}
+ }
+ if(used.length!==n)warnings.push(`There are ${used.length} used colours but ${n} rows and columns. With exactly one cat per colour, row, and column, a solution requires exactly ${n} colours.`);
+ if(!used.length)warnings.push("No colours have been painted.");
+ const rowCats=Array(n).fill(0),colCats=Array(n).fill(0);
+ for(const i of cats){if(cells[i]<0){errors.push(`Manual cat at ${coord(i)} is on an unpainted cell.`);conflicts.add(i)}const p=rc(i);rowCats[p.r]++;colCats[p.c]++;for(const j of neighbours(i,true)){if(cats.has(j)){errors.push(`Cats at ${coord(i)} and ${coord(j)} touch, including diagonally.`);conflicts.add(i);conflicts.add(j)}}}
+ rowCats.forEach((v,r)=>{if(v>1)errors.push(`Row ${r+1} has ${v} manual cats; at most one is allowed.`)});
+ colCats.forEach((v,c)=>{if(v>1)errors.push(`Column ${c+1} has ${v} manual cats; at most one is allowed.`)});
+ for(const i of cats){const color=cells[i];if(color>=0&&[...cats].some(j=>j!==i&&cells[j]===color))errors.push(`Colour ${COLORS[color].name} has more than one manual cat.`)}
+ return {errors:[...new Set(errors)],warnings:[...new Set(warnings)],conflicts,used,comps,byColor,complete:!cells.some(x=>x<0)};
+}
+function renderDiagnostics(a=analyze()){
+ lastAnalysis=a;const box=$("diagnostics");box.innerHTML="";
+ $("diagBadge").textContent=a.errors.length?"issues":a.warnings.length?"review":"valid";
+ if(a.errors.length){const d=document.createElement("div");d.className="notice warn";d.innerHTML="<strong>constraint violations</strong><ul>"+a.errors.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>";box.appendChild(d)}
+ if(a.warnings.length){const d=document.createElement("div");d.className="notice";d.innerHTML="<strong>needs attention</strong><ul>"+a.warnings.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>";box.appendChild(d)}
+ if(!a.errors.length&&!a.warnings.length){box.innerHTML='<div class="empty">No structural issues found.</div>'}
+ $("topStatus").textContent=a.errors.length?"grid has rule violations":a.warnings.length?"grid needs review":"ready for a puzzle";
+ renderBoard();
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function validate(){const a=analyze();renderDiagnostics(a);addHistory("validate",a.errors.length?`Validation found ${a.errors.length} rule violation(s).`:`Validation completed with ${a.warnings.length} warning(s).`);return a}
+function candidateCells(color, blocked, rowUsed, colUsed, assigned){
+ const out=[];for(let i=0;i<cells.length;i++){if(cells[i]!==color||blocked.has(i))continue;const {r,c}=rc(i);if(rowUsed.has(r)||colUsed.has(c))continue;if([...assigned.values()].some(j=>neighbours(j,true).includes(i)))continue;out.push(i)}return out;
+}
+function solve(){
+ const a=validate();
+ if(!a.complete){showSolveMessage("incomplete","paint every cell before solving. unpainted cells make the region and colour constraints undefined.");return}
+ if(a.errors.length){showSolveMessage("invalid","the board violates one or more hard constraints. review the highlighted cells and diagnostics before solving.");return}
+ if(a.used.length!==n){showSolveMessage("no solution",`the current rules require exactly ${n} cats, one per row, column, and colour. this board uses ${a.used.length} colours, so the puzzle cannot satisfy all three exact-one rules.`);return}
+ const colors=a.used, colorCells=new Map(colors.map(c=>[c,cells.map((v,i)=>v===c?i:-1).filter(i=>i>=0)]));
+ const manualByColor=new Map();for(const i of cats){const c=cells[i];if(!manualByColor.has(c))manualByColor.set(c,[]);manualByColor.get(c).push(i)}
+ const rowUsed=new Set(),colUsed=new Set(),assigned=new Map(),usedCells=new Set();let found=0,hitCap=false;const allSolutions=[];
+ function recurse(){
+  if(found>=MAX_SOLUTIONS){hitCap=true;return}
+  if(assigned.size===colors.length){found++;allSolutions.push(new Map(assigned));return}
+  let bestColor=null,bestCandidates=null;
+  for(const color of colors){if(assigned.has(color))continue;let cand=colorCells.get(color).filter(i=>{const {r,c}=rc(i);if(rowUsed.has(r)||colUsed.has(c))return false;if([...assigned.values()].some(j=>neighbours(j,true).includes(i)))return false;for(const [other,cell] of assigned)if(other===color)return false;return true});
+   const forced=manualByColor.get(color);if(forced?.length){cand=cand.filter(i=>i===forced[0])}
+   if(!cand.length)return;
+   if(bestCandidates===null||cand.length<bestCandidates.length){bestColor=color;bestCandidates=cand;if(cand.length===1)break}
+  }
+  for(const i of bestCandidates){const {r,c}=rc(i);if(usedCells.has(i))continue;assigned.set(bestColor,i);usedCells.add(i);rowUsed.add(r);colUsed.add(c);recurse();assigned.delete(bestColor);usedCells.delete(i);rowUsed.delete(r);colUsed.delete(c);if(hitCap)return}
+ }
+ recurse();
+ solutions=allSolutions;
+ if(!found){candidateMap.clear();renderBoard();showSolveMessage("no solution","no arrangement satisfies all current constraints. check region boundaries, manual cats, and the number of colours. no cat was placed.");return}
+ candidateMap.clear();
+ const possible=new Map(colors.map(c=>[c,new Set()]));
+ for(const sol of solutions)for(const [c,i] of sol)possible.get(c).add(i);
+ for(const [c,set] of possible)for(const i of set){if(!candidateMap.has(i))candidateMap.set(i,[]);candidateMap.get(i).push(c)}
+ forcedSteps=[];
+ for(const c of colors){const set=possible.get(c);if(set.size===1){const i=[...set][0];if(!cats.has(i))forcedSteps.push({color:c,cell:i,reason:`Across all ${found}${hitCap?"+":""} solution(s) explored, ${COLORS[c].name} can only occupy ${coord(i)}. Every other cell of this colour conflicts with a row, column, touching, or manual-cat constraint.`})}}
+ // Also identify forced cells by row/column even when a colour has multiple candidate cells.
+ const cellOccurrences=new Map();for(const sol of solutions)for(const i of sol.values())cellOccurrences.set(i,(cellOccurrences.get(i)||0)+1);
+ for(const [i,count] of cellOccurrences){if(count===found&&!forcedSteps.some(s=>s.cell===i)&&!cats.has(i)){const color=cells[i];forcedSteps.push({color,cell:i,reason:`${coord(i)} appears in every solution explored, so this placement is forced by the combined row, column, colour, and no-touching constraints.`})}}
+ forcedSteps.sort((x,y)=>x.cell-y.cell);
+ stepIndex=0;renderBoard();renderCandidateResults(colors,possible,found,hitCap);
+ if(hitCap){showSolveMessage("search capped",`found at least ${found.toLocaleString()} valid solutions, reaching the search cap. candidate and forced-placement results are provisional, because unsearched solutions may change them.`);forcedSteps=[]}
+ else if(found===1){showSolveMessage("unique solution","exactly one valid solution exists under the configured rules.");if(forcedSteps.length===0){$("nextResult").innerHTML='<div class="notice good"><strong>solution is unique</strong><p>all placements are determined, but there are no additional unplaced forced steps to reveal. apply the full solution from the candidates panel is not available yet; inspect the candidate list to see the unique locations.</p></div>'}}
+ else if(forcedSteps.length){showSolveMessage("multiple solutions",`${found} valid solutions found. the next-step list contains placements shared by every valid solution. these are genuine forced placements.`)}
+ else {showSolveMessage("ambiguous",`${found} valid solutions found, and no unplaced cell is common to every solution. the solver cannot honestly claim a forced next step.`)}
+ $("nextBtn").disabled=forcedSteps.length===0||hitCap;$("applyStepBtn").disabled=forcedSteps.length===0||hitCap;
+ if(forcedSteps.length&&!hitCap)renderNextStep();
+ addHistory("solve",`${found.toLocaleString()} solution(s) ${hitCap?"found before search cap": "found"}; ${forcedSteps.length} forced placement(s) identified.`);
+}
+function showSolveMessage(title,message){$("nextResult").innerHTML=`<div class="notice ${title==="no solution"||title==="invalid"?"warn":"good"}"><strong>${esc(title)}</strong><p>${esc(message)}</p></div>`}
+function renderNextStep(){
+ const s=forcedSteps[stepIndex];if(!s){$("nextResult").innerHTML='<div class="empty">No unplaced forced steps remain.</div>';return}
+ $("nextResult").innerHTML=`<div class="result-card"><div class="result-top"><span class="mini-chip" style="background:${COLORS[s.color].hex}"></span><strong>forced placement · ${COLORS[s.color].name}</strong><span class="coord">${coord(s.cell)}</span></div><p>${esc(s.reason)}</p><p class="subtle">step ${stepIndex+1} of ${forcedSteps.length}. this is forced across the solution set, not a heuristic guess.</p></div>`;
+ $("nextBtn").disabled=stepIndex>=forcedSteps.length-1;$("applyStepBtn").disabled=false;
+}
+function renderCandidateResults(colors,possible,found,hitCap){
+ const root=$("candidateResults");root.innerHTML="";
+ for(const color of colors){const set=possible.get(color),card=document.createElement("div");card.className="result-card";
+ const candidates=[...set].sort((a,b)=>a-b);
+ card.innerHTML=`<div class="result-top"><span class="mini-chip" style="background:${COLORS[color].hex}"></span><strong>${esc(COLORS[color].name)}</strong><span class="coord">${candidates.length} candidate${candidates.length===1?"":"s"}</span></div><ul>${candidates.map(i=>`<li>${coord(i)}${cats.has(i)?" · manual cat":""}</li>`).join("")||"<li>no candidate</li>"}</ul>`;
+ root.appendChild(card)}
+ if(hitCap){const d=document.createElement("div");d.className="notice warn";d.textContent="search cap reached; these candidate sets are incomplete and must not be treated as definitive.";root.prepend(d)}
+ if(!colors.length)root.innerHTML='<div class="empty">No colours on the board.</div>';
+}
+function applyStep(){const s=forcedSteps[stepIndex];if(!s)return;if(cats.has(s.cell)){stepIndex++;renderNextStep();return}pushUndo();cats.add(s.cell);renderBoard();$("catStat").textContent=cats.size;addHistory("forced",`Placed a cat at ${coord(s.cell)} in ${COLORS[s.color].name}. ${s.reason}`);stepIndex++;if(stepIndex<forcedSteps.length)renderNextStep();else{$("nextResult").innerHTML='<div class="notice good"><strong>forced steps complete</strong><p>all currently identified unplaced forced placements have been applied. solve again to recompute the remaining puzzle.</p></div>';$("applyStepBtn").disabled=true;$("nextBtn").disabled=true}renderDiagnostics(analyze())}
+function renderHistory(){const root=$("history");root.innerHTML="";if(!history.length){root.innerHTML='<div class="empty">No steps yet.</div>';return}for(let i=0;i<history.length;i++){const h=history[i],el=document.createElement("div");el.className="step";el.innerHTML=`<div class="step-num">${history.length-i}</div><div><p><strong>${esc(h.kind)}</strong> · ${esc(h.message)}</p></div>`;root.appendChild(el)}}
+function updateThemeButton(){$("themeBtn").textContent=theme==="dark"?"☼ light mode":"☾ dark mode"}
+function setTheme(t){theme=t;$("app").dataset.theme=t;document.documentElement.style.colorScheme=t;document.body.style.background="var(--bg)";document.body.style.color="var(--text)";updateThemeButton()}
+function openHelp(){const root=$("modalRoot");root.innerHTML=`<div class="modal-backdrop" id="modalBackdrop"><section class="modal"><h3>rules & solver logic</h3><p>this app implements the rules selected for this puzzle. some are strong constraints, so a puzzle may be impossible even when the board looks plausible.</p><ul><li><strong>one region per colour:</strong> all cells of each used colour must be connected orthogonally. diagonal contact does not connect a region.</li><li><strong>one cat per region/colour:</strong> each used colour receives exactly one cat.</li><li><strong>one per row and column:</strong> every row and column receives exactly one cat. therefore, the number of used colours must equal the board width.</li><li><strong>no touching:</strong> cats cannot occupy any of the eight neighbouring cells, including diagonals.</li><li><strong>region size:</strong> every same-colour connected region must not exceed the configured maximum.</li><li><strong>forced step:</strong> a cell is called forced only if it occurs in every solution found. the solver never chooses a speculative placement.</li></ul><p><strong>scope:</strong> the solver requires every grid cell to be painted. it searches all solutions up to a cap of ${MAX_SOLUTIONS.toLocaleString()}; if the cap is reached, it marks results provisional and suppresses forced-step claims. saved puzzles remain in this browser only.</p><div class="modal-actions"><button class="btn primary" id="closeHelp">got it</button></div></section></div>`;$("closeHelp").onclick=()=>root.innerHTML="";$("modalBackdrop").onclick=e=>{if(e.target.id==="modalBackdrop")root.innerHTML=""}}
+function savePuzzle(){const payload={version:1,name:$("puzzleName").value,n,maxRegion:$("maxRegion").value,cells,cats:[...cats],selected,mode,theme};const keyName=`cat-solver:${payload.name.trim()||"untitled"}`;try{localStorage.setItem(keyName,JSON.stringify(payload));addHistory("save",`Saved puzzle "${payload.name||"untitled"}" to this browser.`);renderDiagnostics(analyze());alert(`Saved "${payload.name||"untitled"}" locally in this browser.`)}catch(e){alert("Could not save puzzle. Browser storage may be unavailable or full.")}}
+function loadPuzzle(){const entries=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("cat-solver:")){try{entries.push({key:k,data:JSON.parse(localStorage.getItem(k))})}catch{}}}if(!entries.length){alert("No saved puzzles found in this browser.");return}const choice=prompt("Enter the number of a saved puzzle:\n"+entries.map((e,i)=>`${i+1}. ${e.data.name||e.key.slice(11)} (${e.data.n}×${e.data.n})`).join("\n"));const ix=Number(choice)-1;if(!Number.isInteger(ix)||ix<0||ix>=entries.length)return;const p=entries[ix].data;if(!Array.isArray(p.cells)||p.cells.length!==p.n*p.n)return alert("Saved puzzle data is invalid.");n=p.n;cells=[...p.cells];cats=new Set(p.cats||[]);selected=p.selected||0;mode=p.mode||"paint";$("sizeSelect").value=String(n);$("maxRegion").value=p.maxRegion||"0";$("puzzleName").value=p.name||"";$("modeSelect").value=mode;setTheme(p.theme||"dark");undoStack=[];redoStack=[];invalidate();renderAll();renderDiagnostics(analyze());addHistory("load",`Loaded puzzle "${p.name||"untitled"}".`)}
+function exportPuzzle(){const payload={version:1,name:$("puzzleName").value,n,maxRegion:$("maxRegion").value,cells,cats:[...cats]};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(payload.name.trim().replace(/[^a-z0-9-_]+/gi,"-")||"cat-puzzle")+".json";a.click();URL.revokeObjectURL(a.href)}
+function importPuzzle(){const input=document.createElement("input");input.type="file";input.accept=".json,application/json";input.onchange=()=>{const file=input.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const p=JSON.parse(reader.result);if(!Number.isInteger(p.n)||p.n<1||p.n>10||!Array.isArray(p.cells)||p.cells.length!==p.n*p.n||p.cells.some(x=>!Number.isInteger(x)||x < -1||x>=COLORS.length))throw Error("invalid puzzle");pushUndo();n=p.n;cells=[...p.cells];cats=new Set((p.cats||[]).filter(i=>Number.isInteger(i)&&i>=0&&i<cells.length));$("sizeSelect").value=String(n);$("maxRegion").value=p.maxRegion||"0";$("puzzleName").value=p.name||"";invalidate();renderAll();renderDiagnostics(analyze());addHistory("import",`Imported puzzle "${p.name||file.name}".`)}catch(e){alert("Could not import this puzzle. Check that it is a valid cat solver JSON export.")}};reader.readAsText(file)};input.click()}
+$("sizeSelect").onchange=()=>{const next=Number($("sizeSelect").value);if(next===n)return;if(cells.some(x=>x>=0)||cats.size){if(!confirm("Changing board size clears the current puzzle. continue?")){$("sizeSelect").value=String(n);return}}initCells(next)};
+$("maxRegion").onchange=()=>{invalidate();renderDiagnostics(analyze())};
+$("modeSelect").onchange=()=>{mode=$("modeSelect").value;$("paintHint").textContent=mode==="paint"?`Selected ${COLORS[selected].name}. Click or drag across cells to paint.`:mode==="erase"?"Click or drag to erase cells.":"Click cells to place or remove manual cats."};
+$("undoBtn").onclick=undo;$("redoBtn").onclick=redo;$("validateBtn").onclick=validate;$("solveBtn").onclick=solve;
+$("clearBtn").onclick=()=>{if(!confirm("Clear all colours and cats?"))return;pushUndo();cells.fill(-1);cats.clear();invalidate();renderAll();addHistory("clear","Cleared the board.")};
+$("removeCatsBtn").onclick=()=>{if(!cats.size)return;pushUndo();cats.clear();invalidate();renderAll();addHistory("manual","Removed all cats from the board.")};
+$("nextBtn").onclick=()=>{if(stepIndex<forcedSteps.length-1){stepIndex++;renderNextStep()}};
+$("applyStepBtn").onclick=applyStep;$("candidateToggle").onchange=()=>{showCandidates=$("candidateToggle").checked;renderBoard()};
+$("themeBtn").onclick=()=>setTheme(theme==="dark"?"light":"dark");$("helpBtn").onclick=openHelp;$("clearHistoryBtn").onclick=()=>{history=[];renderHistory()};
+$("saveBtn")?.addEventListener("click",savePuzzle);
+const saveBtn=document.createElement("button");saveBtn.className="btn";saveBtn.textContent="save";saveBtn.onclick=savePuzzle;
+const loadBtn=document.createElement("button");loadBtn.className="btn";loadBtn.textContent="load";loadBtn.onclick=loadPuzzle;
+const exportBtn=document.createElement("button");exportBtn.className="btn";exportBtn.textContent="export";exportBtn.onclick=exportPuzzle;
+const importBtn=document.createElement("button");importBtn.className="btn";importBtn.textContent="import";importBtn.onclick=importPuzzle;
+$("topStatus").parentElement.parentElement.querySelector(".top-actions").append(saveBtn,loadBtn,exportBtn,importBtn);
+setTheme("dark");initCells(8);
+})();
+</script>
+</body>
+</html>
