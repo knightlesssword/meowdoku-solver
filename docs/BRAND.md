@@ -1,7 +1,7 @@
 # Meowdoku Solver - Brand Assets and Usage
 
 - **Reviewed:** 2026-10-30.
-- **Source of truth:** `docs/implementation/brand.md`, plus the two SVG files actually present in the repository.
+- **Source of truth:** the two SVG files actually present in the repository and the supplied brand direction.
 - **Status:** Both supplied assets are integrated or documented. No placeholder or duplicate logo files were created.
 
 ## Supplied assets
@@ -9,7 +9,7 @@
 | File | Dimensions | View box | Size | Role |
 |---|---|---:|---:|---|
 | `assets/branding/app-icon.svg` | 256 × 256 (1:1) | `0 0 256 256` | 1,394 bytes | Standalone app icon; header mark and favicon |
-| `assets/branding/logo-horizontal.svg` | 940 × 260 (≈ 3.6:1) | `0 0 940 260` | 13,123 bytes | Horizontal wordmark for light-surface documentation and README use |
+| `assets/branding/logo-horizontal.svg` | 940 × 260 (≈ 3.6:1) | `0 0 940 260` | 13,123 bytes | Horizontal wordmark for light-surface documentation and print use |
 
 These are the actual exported filenames. The placeholder names `meowdoku-icon.svg` and `meowdoku-logo.svg` from the original brief were not supplied and do not exist.
 
@@ -58,12 +58,12 @@ For a theme-safe README hero, prefer the icon plus a normal heading:
 
 ```html
 <p align="center">
-  <img src="assets/branding/app-icon.svg" alt="Meowdoku Solver app icon" width="96" height="96">
+  <img src="assets/branding/app-icon.svg" alt="" width="96" height="96">
 </p>
 <h1 align="center">Meowdoku Solver</h1>
 ```
 
-The horizontal wordmark can still be shown in a light-only README block, documentation cover, or print context. If GitHub dark-mode support is required, keep the icon-and-heading pattern rather than relying on the brown wordmark alone.
+The horizontal wordmark can still be shown in a light-only documentation block, cover, or print context. If GitHub dark-mode support is required, keep the icon-and-heading pattern rather than relying on the brown wordmark alone. The current README uses the icon-and-heading hero plus two actual screenshots and does not embed the brown wordmark.
 
 ## Brand colours observed in the assets
 
@@ -86,7 +86,7 @@ The twelve puzzle paint colours remain unchanged in value and index. The brand p
 
 ## Files deliberately not created
 
-- No rasterised PNG copies of either SVG.
+- No rasterised PNG copies of either logo asset. The README screenshots are captures of the running application, not converted logo files.
 - No dark-mode wordmark variant, because no such export was supplied.
 - No social-preview image or banner, because no suitable exported asset exists.
 - No external Figma URLs are referenced at runtime.
