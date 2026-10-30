@@ -6,7 +6,7 @@ Recorded: 2026-10-30. All statements below were verified against the working tre
 
 | Item | Verified state |
 |---|---|
-| Working directory | `D:\blep\FSProjects\cat-puzzle-solver` |
+| Working directory | `<repository-root>` |
 | Current branch | `master` (single local branch, no upstream) |
 | Remote | None configured (`git remote -v` empty) |
 | GitHub repository | `knightlesssword/meowdoku-solver`, public, **empty** (`isEmpty: true`, no branches) |
