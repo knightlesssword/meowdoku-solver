@@ -1,0 +1,18 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="256" height="256" rx="53.76" fill="#F4E8D4"/>
+<rect x="43.52" y="43.52" width="48.64" height="48.64" rx="11.52" fill="#A9D58E"/>
+<rect x="103.68" y="43.52" width="48.64" height="48.64" rx="11.52" fill="#F5B9CF"/>
+<rect x="163.84" y="43.52" width="48.64" height="48.64" rx="11.52" fill="#F5C16A"/>
+<rect x="43.52" y="103.68" width="48.64" height="48.64" rx="11.52" fill="#91B9EA"/>
+<rect x="103.68" y="103.68" width="48.64" height="48.64" rx="11.52" fill="#755039"/>
+<rect x="163.84" y="103.68" width="48.64" height="48.64" rx="11.52" fill="#F08E82"/>
+<rect x="43.52" y="163.84" width="48.64" height="48.64" rx="11.52" fill="#F5C16A"/>
+<rect x="103.68" y="163.84" width="48.64" height="48.64" rx="11.52" fill="#A9D58E"/>
+<rect x="163.84" y="163.84" width="48.64" height="48.64" rx="11.52" fill="#91B9EA"/>
+<path d="M118.272 105.139L125.433 121.555H111.111L118.272 105.139Z" fill="#FFF8EC"/>
+<path d="M137.728 105.139L144.889 121.555H130.567L137.728 105.139Z" fill="#FFF8EC"/>
+<ellipse cx="128" cy="131.891" rx="17.024" ry="15.0784" fill="#FFF8EC"/>
+<ellipse cx="122.042" cy="131.405" rx="1.824" ry="2.9184" fill="#4C3324"/>
+<ellipse cx="134.202" cy="131.405" rx="1.824" ry="2.9184" fill="#4C3324"/>
+<ellipse cx="128.973" cy="138.093" rx="1.7024" ry="1.3376" fill="#D77C72"/>
+</svg>
