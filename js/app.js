@@ -2147,6 +2147,8 @@ function autosaveBoard() {
     autosaveFailureReported = false;
     return true;
   } catch (_) {
+    /* Never leave an older snapshot behind as a misleading recovery point. */
+    clearAutosave();
     if (!autosaveFailureReported) {
       autosaveFailureReported = true;
       toast("This board could not be autosaved. Validation and solving will continue.", "warning", 5600);
