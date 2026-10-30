@@ -208,45 +208,46 @@ svg { display: block; }
 /* ---------- Header ---------- */
 
 .app-header {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 0 16px;
+  justify-content: center;
+  min-height: 88px;
+  padding: 12px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-/* Supplied app icon. The artwork carries its own cream tile and rounded
-   corners, so the outline follows the alpha edge instead of a CSS box. */
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  flex: none;
-  filter: drop-shadow(0 0 1px var(--border-strong)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.16));
-}
-
-.brand-copy { min-width: 0; }
-.brand h1 {
+  justify-content: center;
   margin: 0;
-  font-size: 18px;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-  font-weight: 720;
+  line-height: 0;
+}
+
+/* The supplied wordmark has a cocoa wordmark that needs a light plate on the
+   dark theme. Keep the artwork ratio and let the plate carry the contrast. */
+.brand-wordmark {
+  display: block;
+  width: clamp(150px, 22vw, 250px);
+  height: auto;
+  padding: 7px 10px;
+  border-radius: 14px;
+  background: #F4E8D4;
+  box-shadow: 0 0 0 1px rgba(104, 69, 47, 0.10), 0 8px 24px rgba(0, 0, 0, 0.14);
 }
 
 .header-actions {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 7px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  transform: translateY(-50%);
 }
 
 .status-pill {
@@ -452,6 +453,16 @@ svg { display: block; }
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
+  flex-wrap: wrap;
+}
+
+.stage-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
 }
 .section-heading h2 {
   margin: 0;
@@ -540,13 +551,6 @@ svg { display: block; }
   background: var(--surface-3);
   color: var(--text);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-}
-
-.rules-line {
-  margin: -4px 0 0;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.45;
 }
 
 /* ---------- Board ---------- */
@@ -900,7 +904,16 @@ svg { display: block; }
   border-top: 1px solid var(--border);
 }
 .secondary-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.solve-btn { min-width: 152px; min-height: 38px; }
+#undoBtn,
+#redoBtn {
+  min-height: 38px;
+  padding-inline: 14px;
+  font-size: 13px;
+}
+#undoBtn .icon,
+#redoBtn .icon { width: 16px; height: 16px; }
+.solve-btn { min-width: 176px; min-height: 44px; font-size: 14px; }
+.solve-btn .icon { width: 18px; height: 18px; }
 
 /* ---------- Sidebar ---------- */
 
@@ -968,6 +981,7 @@ svg { display: block; }
   font-size: 10.5px;
   line-height: 1.35;
 }
+.section-head p:empty { display: none; }
 
 .badge {
   display: inline-flex;
@@ -1432,15 +1446,30 @@ kbd {
 
 .app-footer {
   display: flex;
-  justify-content: space-between;
-  gap: 10px 24px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   margin-top: 20px;
   padding: 14px 0 22px;
   border-top: 1px solid var(--border);
   color: var(--faint);
   font-size: 10.5px;
   line-height: 1.45;
+  text-align: center;
+}
+.app-footer p { margin: 0; }
+.app-footer a {
+  color: var(--text-2);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.app-footer a:hover {
+  color: var(--accent-text);
+}
+.app-footer a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* ---------- Responsive ---------- */
@@ -1476,21 +1505,20 @@ kbd {
 
 @media (max-width: 720px) {
   .app-shell { padding-inline: 10px; }
-  .app-header { padding: 13px 0 12px; gap: 8px; }
-  .brand { gap: 9px; }
-  .brand-mark { width: 36px; height: 36px; }
-  .brand h1 { font-size: 16px; }
+  .app-header { min-height: 76px; padding: 10px 0; }
+  .brand-wordmark { padding: 5px 8px; border-radius: 12px; }
   .header-actions { gap: 4px; }
   .header-actions .icon-btn { width: 34px; height: 34px; }
   .file-btn { min-height: 34px; padding-inline: 8px; font-size: 11.5px; }
   .file-btn .chevron { display: none; }
+  .file-menu { left: 0; right: auto; }
   .workspace { padding-top: 12px; gap: 12px; }
   .stage { padding: 14px; gap: 12px; }
-  .stage-top { gap: 8px; }
+  .stage-top { flex-direction: column; align-items: stretch; gap: 8px; }
+  .stage-actions { justify-content: flex-start; margin-left: 0; }
   .section-heading h2 { font-size: 15px; }
   .section-heading p { font-size: 11px; }
   .setup-bar { gap: 9px; padding: 10px; }
-  .rules-line { font-size: 11px; }
   .board-frame { padding: 8px; }
   .board-shell { --ruler-size: 15px; --grid-gap: 4px; width: 100%; }
   .col-ruler, .row-ruler { font-size: 8.5px; }

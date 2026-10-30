@@ -117,12 +117,9 @@
 
 <div class="app-shell">
   <header class="app-header">
-    <div class="brand">
-      <img class="brand-mark" src="assets/branding/app-icon.svg" alt="" width="42" height="42">
-      <div class="brand-copy">
-        <h1>Meowdoku Solver</h1>
-      </div>
-    </div>
+    <h1 class="brand">
+      <img class="brand-wordmark" src="assets/branding/logo-horizontal.svg" alt="Meowdoku Solver" width="940" height="260">
+    </h1>
     <div class="header-actions">
       <div class="status-pill" id="headerStatus" data-tone="neutral" title="Current board state" aria-live="polite" aria-atomic="true">
         <span class="status-dot" aria-hidden="true"></span>
@@ -135,33 +132,6 @@
       <button type="button" class="icon-btn" id="helpBtn" aria-label="Rules and solver logic" title="Rules and solver logic">
         <svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg>
       </button>
-      <div class="file-menu-wrap">
-        <button type="button" class="btn file-btn" id="fileBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="fileMenu">
-          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"></use></svg>
-          <span>File</span>
-          <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
-        </button>
-        <div class="file-menu" id="fileMenu" role="menu" aria-labelledby="fileBtn" hidden>
-          <button type="button" class="menu-item" id="saveBtn" role="menuitem" tabindex="-1">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-save"></use></svg>
-            <span>Save puzzle</span>
-          </button>
-          <button type="button" class="menu-item" id="loadBtn" role="menuitem" tabindex="-1">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"></use></svg>
-            <span>Load saved…</span>
-          </button>
-          <div class="menu-separator" role="separator"></div>
-          <button type="button" class="menu-item" id="importBtn" role="menuitem" tabindex="-1">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-upload"></use></svg>
-            <span>Import JSON…</span>
-          </button>
-          <button type="button" class="menu-item" id="exportBtn" role="menuitem" tabindex="-1">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-download"></use></svg>
-            <span>Export JSON</span>
-          </button>
-          <p class="menu-note">Saved puzzles stay in this browser.</p>
-        </div>
-      </div>
     </div>
   </header>
 
@@ -170,12 +140,41 @@
       <div class="stage-top">
         <div class="section-heading">
           <h2 id="canvasTitle">Puzzle canvas</h2>
-          <p>Paint every cell, then let the solver verify the arrangement.</p>
+          <p>One cat per colour, row, and column · cats never touch · each colour forms one connected region.</p>
         </div>
-        <button type="button" class="btn ghost danger-text" id="clearBtn" disabled>
-          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-close"></use></svg>
-          <span>Clear board</span>
-        </button>
+        <div class="stage-actions">
+          <div class="file-menu-wrap">
+            <button type="button" class="btn file-btn" id="fileBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="fileMenu">
+              <svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"></use></svg>
+              <span>File</span>
+              <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
+            </button>
+            <div class="file-menu" id="fileMenu" role="menu" aria-labelledby="fileBtn" hidden>
+              <button type="button" class="menu-item" id="saveBtn" role="menuitem" tabindex="-1">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="#i-save"></use></svg>
+                <span>Save puzzle</span>
+              </button>
+              <button type="button" class="menu-item" id="loadBtn" role="menuitem" tabindex="-1">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"></use></svg>
+                <span>Load saved…</span>
+              </button>
+              <div class="menu-separator" role="separator"></div>
+              <button type="button" class="menu-item" id="importBtn" role="menuitem" tabindex="-1">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="#i-upload"></use></svg>
+                <span>Import JSON…</span>
+              </button>
+              <button type="button" class="menu-item" id="exportBtn" role="menuitem" tabindex="-1">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="#i-download"></use></svg>
+                <span>Export JSON</span>
+              </button>
+              <p class="menu-note">Saved puzzles stay in this browser.</p>
+            </div>
+          </div>
+          <button type="button" class="btn ghost danger-text" id="clearBtn" disabled>
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-close"></use></svg>
+            <span>Clear board</span>
+          </button>
+        </div>
       </div>
 
       <div class="setup-bar">
@@ -213,8 +212,6 @@
           </div>
         </div>
       </div>
-
-      <p class="rules-line">One cat per colour, row, and column · cats never touch · each colour forms one connected region.</p>
 
       <div class="board-area">
         <div class="board-toolbar">
@@ -275,7 +272,6 @@
           <div class="section-head">
             <div>
               <h2 id="diagnosticsTitle">Board diagnostics</h2>
-              <p>Live structural checks</p>
             </div>
             <span class="badge" id="diagBadge" data-tone="neutral">Empty</span>
           </div>
@@ -294,7 +290,6 @@
           <div class="section-head">
             <div>
               <h2 id="deductionTitle">Next deduction</h2>
-              <p>Only placements common to every solution</p>
             </div>
           </div>
           <div id="nextResult" class="next-result"></div>
@@ -311,7 +306,7 @@
           <div class="section-head">
             <div>
               <h2 id="candidatesTitle">Candidate locations</h2>
-              <p id="candidateSubtitle">Solve to calculate</p>
+              <p id="candidateSubtitle"></p>
             </div>
             <label class="switch" for="candidateToggle">
               <input type="checkbox" id="candidateToggle" checked disabled>
@@ -325,7 +320,6 @@
           <div class="section-head">
             <div>
               <h2 id="historyTitle">Deduction history</h2>
-              <p>Board edits and solver activity</p>
             </div>
             <button type="button" class="btn ghost small" id="clearHistoryBtn" disabled>Clear</button>
           </div>
@@ -336,8 +330,7 @@
   </main>
 
   <footer class="app-footer">
-    <span>Local-first · Saved puzzles stay in this browser.</span>
-    <span>Solver cap: 20,000 solutions / 3 s · capped results are provisional.</span>
+    <p>Made with <span aria-hidden="true">❤️</span><span class="sr-only">love</span> by <a href="https://github.com/knightlesssword" target="_blank" rel="noopener noreferrer">knightlesssword</a></p>
   </footer>
 </div>
 
