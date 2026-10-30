@@ -13,8 +13,9 @@ Only the latest code on `main` and the latest deployed site are intended to rece
 
 Please **do not** open a public issue for a suspected security vulnerability.
 
-1. Open the repository's **Security** tab and use GitHub's private vulnerability reporting option if it is available for this repository.
-2. If private reporting is not shown, contact the maintainer through the contact options on the [knightlesssword GitHub profile](https://github.com/knightlesssword) and ask for a private channel. Do not include exploit details until a private channel is confirmed.
+Private vulnerability reporting is enabled for this repository. Use [Report a vulnerability](https://github.com/knightlesssword/meowdoku-solver/security/advisories/new), or open the repository's **Security** tab and choose the same option.
+
+If private reporting is unavailable, contact the maintainer through the contact options on the [knightlesssword GitHub profile](https://github.com/knightlesssword) and ask for a private channel. Do not include exploit details until a private channel is confirmed.
 
 Include as much of the following as you can:
 
