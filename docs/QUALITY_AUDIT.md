@@ -1,10 +1,10 @@
 # Meowdoku Solver - Security, Solver, UI, and Accessibility Audit
 
 - **Audit date:** 2026-10-30.
-- **Scope:** Phase 3 audit of the working tree after Phase 2 (`dfa3b26`) plus the Phase 3 fixes, revalidated after the Phase 4 branding integration and Phase 5 documentation.
+- **Scope:** Phase 3 audit of the working tree after Phase 2 (`dfa3b26`) plus the Phase 3 fixes, revalidated after the Phase 4 branding integration, Phase 5 documentation, and Phase 6 publication.
 - **Auditor:** primary orchestrator, acting as the sole integration owner.
 - **Method:** source review, static scans, temporary Playwright/axe browser harness, and manual inspection of real Chromium renders. Test details and commands are in `docs/TESTING.md`.
-- **Overall result:** no known Critical or High issue remains in the reviewed scope. Three confirmed defects were fixed and regression-tested. Accepted and deferred items are listed separately. This audit does not claim complete security or WCAG conformance.
+- **Overall result:** no known Critical or High issue remains in the reviewed scope. Three confirmed defects were fixed and regression-tested. The Phase 6 workflow and live Pages deployment were reviewed and verified without adding a finding. Accepted and deferred items are listed separately. This audit does not claim complete security or WCAG conformance.
 
 ## Findings summary
 
@@ -18,7 +18,7 @@
 | A-03 | Informational | Security | Accepted | There is no Content Security Policy; the app has an inline theme bootstrap and no untrusted markup sinks. |
 | A-04 | Informational | Privacy | Accepted | `localStorage` is unencrypted, clearable, and not a durable backup. No secrets are stored. |
 | A-05 | Low | Solver | Accepted | Search is synchronous on the main thread and can block for up to roughly the 3-second cap; it is bounded and visibly indicated. |
-| D-01 | - | Workflow | Deferred | GitHub Actions permissions, action SHA pinning, and deploy isolation cannot be audited until Phase 6 creates the workflow. |
+| D-01 | - | Workflow | Resolved | The Phase 6 workflow is pinned, least-privilege, main-only, serialized, and non-force-pushing; both the push run and manual dispatch succeeded. |
 | D-02 | - | Accessibility | Deferred | No real screen-reader pass (NVDA, JAWS, VoiceOver) was possible in this environment. |
 | D-03 | - | Compatibility | Deferred | Functional tests used Chromium only; Firefox and Safari were not tested. |
 | D-04 | - | Performance | Deferred | No low-end-device profiling or long-session memory measurement was performed. |
@@ -81,7 +81,7 @@ No unresolved Critical, High, or Medium finding is known after the fixes below.
 - **Affected:** `index.html` document metadata.
 - **Behaviour:** The page has no CSP meta tag or response header. It retains one small inline theme bootstrap and an inline SVG sprite.
 - **Why accepted:** There is no backend to set headers, no untrusted HTML sink, no external script, font, image, analytics, or network request, and imports are validated before use. A useful CSP would need a hash or nonce for the bootstrap and careful testing of the local SVG favicon and same-document SVG references. Adding one is a deployment-phase hardening option, not a blocker for this local-first build.
-- **Revisit in:** Phase 6 hosting hardening, with browser verification of the theme bootstrap and icons.
+- **Revisit in:** future hosting hardening. Phase 6 published from a branch without adding a CSP; any future policy needs browser verification of the theme bootstrap, local SVG favicon, inline SVG references, and downloads.
 
 ### A-04 - Browser storage is not confidential or durable
 
@@ -99,20 +99,22 @@ No unresolved Critical, High, or Medium finding is known after the fixes below.
 - **Why accepted:** The caps bound the work and recursion depth is at most the number of colours (10). The interface shows `Solving…`, disables editing/actions, and marks capped results provisional. A Web Worker would add architecture and file-loading complexity without changing the product's correctness guarantees.
 - **Residual risk:** A slow device can still experience a short frozen interval near the cap. No cancellation control exists. This was not profiled on low-end hardware.
 
-## Deferred items
+## Deferred and resolved items
 
-### D-01 - GitHub Actions and deployment security
+### D-01 - GitHub Actions and deployment security (resolved)
 
-Phase 3 has no workflow to inspect: `.github/` currently contains only issue and pull-request templates. Phase 6 must:
+Phase 6 added `.github/workflows/deploy-pages.yml` in commit `6cb94a4`. The workflow was reviewed and exercised as follows:
 
-- declare least-privilege `permissions` (read-only by default, `pages: write` and `id-token: write` only for the deploy job);
-- pin third-party actions to reviewed immutable commit SHAs;
-- avoid exposing secrets in logs;
-- deploy only the intended `main` build, not arbitrary pull-request code with write access;
-- ensure deployment-branch updates cannot recursively trigger deployment;
-- never force-push deployment output.
+- **Triggers:** pushes to `main` and manual `workflow_dispatch` only. A job-level guard rejects any ref other than `refs/heads/main`.
+- **Permissions:** only `contents: write` is requested, which the job needs to append to `gh-pages`. There is no `pages: write`, `id-token: write`, or unrelated scope.
+- **Action pin:** `actions/checkout` v7.0.1 is pinned to commit `3d3c42e5aac5ba805825da76410c181273ba90b1`. The SHA was resolved from the official release and verified through the GitHub API.
+- **Concurrency:** the `pages` group serializes runs with `cancel-in-progress: false`.
+- **Artifact allowlist:** only `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, and `.nojekyll` are staged. Documentation, templates, screenshots, tests, and local paths are excluded.
+- **Branch safety:** the publish step creates an orphan `gh-pages` only when the branch does not exist. Otherwise it builds on the fetched branch and uses ordinary `git push origin HEAD:gh-pages`. It never uses `--force`, `--force-with-lease`, or a destructive orphan replacement.
+- **No secrets:** the built-in `GITHUB_TOKEN` is used through the checkout action's persisted credentials; no repository secret is configured or printed.
+- **Evidence:** push run `41068060948` succeeded for `6cb94a4`; manual run `41068782251` succeeded as a no-op. `gh-pages` was created at `7f3fc83` with five files. The Pages build completed with status `built`, and the public URL returned HTTP 200. A local simulation of the publish shell appended a second deployment commit on top of the first, confirming non-destructive history growth.
 
-This item remains a Phase 6 release gate.
+Residual deployment considerations: the repository has no environment approval gate or branch protection configured, and any future change to the workflow or Pages settings must be reviewed again. These are operational hardening items, not unresolved findings in the current release.
 
 ### D-02 - Real assistive-technology testing
 
@@ -207,7 +209,7 @@ The inconclusive case required a temporary test-only `performance.now` patch to 
 - Current tracked files and the available commit history were scanned for common token/key/private-key patterns: none found.
 - The Phase 3 source diff contained only the three fixes above; no generated artifacts or test fixtures were staged.
 - No remote is configured yet. Branch is `main`; no rebase, reset, or force-push was performed.
-- Workflow permission and pinning checks are deferred to D-01 because no workflow exists in Phase 3.
+- Workflow permission and pinning checks were deferred to D-01 in Phase 3 because no workflow existed then. D-01 was resolved and verified in Phase 6.
 
 ### UI and accessibility
 
@@ -236,21 +238,36 @@ No new security, solver, or accessibility finding was introduced by the branding
 
 - User-facing docs were written from the actual source and the recorded test evidence, not from the original prompt's assumptions. The checked claims are listed in `docs/TESTING.md`.
 - The README screenshots are real captures of the running app at 1281 × 1388. They contain only the sample puzzle, interface, and the committed brand artwork; no account, token, local path, or private browser data is visible.
-- The documentation states that `localStorage` is unencrypted and clearable, that the Pages URL was not yet verified, that the browser evidence is Chromium-only, and that no WCAG or security certification is claimed.
-- Internal links, image paths, and heading anchors were checked with a temporary script: 33 Markdown files, 28 relative targets, zero missing targets, zero unbalanced code fences. Public non-Pages links returned HTTP 200 at check time. The Pages target returned 404 because Phase 6 has not deployed yet.
-- No secret, token, or personal data was added to the documentation or screenshots. The deferred workflow-security review (D-01) remains a Phase 6 release gate.
+- The documentation states that `localStorage` is unencrypted and clearable, that the browser evidence is Chromium-only, and that no WCAG or security certification is claimed. The Pages target was still unverified at Phase 5 time; Phase 6 later deployed and verified it.
+- Internal links, image paths, and heading anchors were checked with a temporary script: 33 Markdown files, 28 relative targets, zero missing targets, zero unbalanced code fences. Public non-Pages links returned HTTP 200 at check time. The Pages target returned 404 at Phase 5 time because Phase 6 had not deployed yet.
+- No secret, token, or personal data was added to the documentation or screenshots. The workflow-security review (D-01) was completed in Phase 6.
 
 No new Critical, High, Medium, or Low finding was identified in the documentation pass.
+
+## Phase 6 release verification
+
+- **Repository:** public `knightlesssword/meowdoku-solver`; `main` pushed with all prior history preserved.
+- **Workflow:** `.github/workflows/deploy-pages.yml` at `6cb94a4`; `actions/checkout` pinned to the v7.0.1 commit; only `contents: write`; main-only; serialized by concurrency.
+- **Workflow runs:** push run `41068060948` succeeded for `6cb94a4`; manual `workflow_dispatch` run `41068782251` succeeded and produced no new deployment commit because the artifact was unchanged.
+- **Deployment branch:** `gh-pages` created at `7f3fc83` with `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, and `assets/branding/app-icon.svg` only.
+- **Pages configuration:** source `gh-pages`, path `/`, build type `legacy`, HTTPS enforced, status `built`.
+- **Public site:** <https://knightlesssword.github.io/meowdoku-solver/> returned HTTP 200. HTML, CSS, JavaScript, SVG, and `.nojekyll` returned HTTP 200 with the expected content types.
+- **Live smoke tests:** the deployed app initialized with 64 empty cells and 12 palette colours; paint, erase, cat, validate/autosave, import, solve, candidate overlay, forced-step controls, named save/load, export, theme switch, help dialog, and a 390 px layout all passed. No page or console errors were observed, all five initial requests were same-origin, and export omitted `maxRegion`.
+- **Private vulnerability reporting:** enabled on the repository and linked from `SECURITY.md` and the issue-template configuration.
+
+No new Critical, High, Medium, or Low finding was introduced by publication. The live site is now verified; the remaining gaps are the previously recorded compatibility, assistive-technology, performance, and temporary-harness limitations.
 
 ## Residual risks
 
 1. Restored autosaves persist until Start fresh or a later Validate/Solve, so repeated prompts and pre-edit snapshots are possible (A-01).
 2. The main thread can freeze briefly near the search caps on slow hardware; there is no cancel control (A-05).
 3. `localStorage` is unencrypted and clearable; users must export important puzzles (A-04).
-4. No CSP or hosting security headers exist yet (A-03, D-01).
+4. No CSP or hosting security headers are configured in the app or the static Pages deployment (A-03).
 5. Screen-reader announcement behaviour and non-Chromium browsers are unverified (D-02, D-03).
 6. The temporary test harness is outside version control; the recorded results are reproducible only by recreating the scripts or adding a future non-runtime test setup.
+7. The repository does not configure a protected `main` branch or a GitHub environment approval gate. The deployment job has the write access it needs, so maintainer account security and repository branch rules remain operational controls.
+8. The workflow action pin must be reviewed and updated deliberately. A future floating tag or unpinned action would weaken the current supply-chain posture.
 
 ## Gate decision
 
-The Phase 3 gate is satisfied for the reviewed scope: no known Critical or High issue remains, all confirmed defects were fixed and regression-tested, and the remaining items are accepted, deferred with an owner/phase, or documented residual risks. Phase 4 branding and Phase 5 documentation were revalidated without adding a new finding. Deployment remains blocked until the Phase 6 workflow checks (D-01) are completed and the public Pages URL is verified.
+The Phase 3, Phase 4, Phase 5, and Phase 6 gates are satisfied for the reviewed scope. No known Critical or High issue remains; all confirmed defects were fixed and regression-tested; branding and documentation were revalidated; the workflow is pinned, least-privilege, main-only, serialized, and non-force-pushing; and the public Pages URL, runtime assets, and live application were verified. Remaining items are accepted residual risks or deferred compatibility, assistive-technology, performance, and harness limitations.

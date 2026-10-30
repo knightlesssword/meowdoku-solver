@@ -18,7 +18,7 @@ Committed as `1d1c184` (`chore(project): capture implementation inputs and phase
 - Supplied prompt pack, GitHub templates, and two SVG assets committed unchanged.
 - Authoritative source confirmed as the tracked 4,781-line `cat-placement-solver (1).html` at `af7ff90`.
 - Baseline details are in `docs/implementation/BASELINE.md`.
-- Repository `knightlesssword/meowdoku-solver` is public and empty; no remote is configured locally; GitHub Pages returns 404. These remain Phase 6 setup items.
+- At Phase 0, repository `knightlesssword/meowdoku-solver` was public and empty, no remote was configured locally, and GitHub Pages returned 404. Phase 6 added the remote, pushed `main`, created the workflow, configured Pages, and verified the live URL.
 
 ## Phase 1 - Product corrections (single-file app)
 
@@ -57,13 +57,13 @@ Committed as `1d1c184` (`chore(project): capture implementation inputs and phase
 | Syntax | `node --check` on extracted application script | Pass |
 | Browser console | Desktop and headless sessions | No page errors or console errors |
 
-### Not yet covered (scheduled later)
+### Later phase coverage (completed)
 
 - Full solver fixture matrix and no-solution case (Phase 3).
-- Screen-reader manual pass and full accessibility audit (Phase 3).
-- Light-theme visual review and final branding integration (Phase 4).
-- GitHub Pages deployment (Phase 6).
-- Final documentation and release workflow (Phases 5 and 6).
+- Accessibility audit and keyboard/browser checks (Phase 3); real screen-reader testing remains deferred.
+- Light-theme visual review and branding integration (Phase 4).
+- Final documentation (Phase 5).
+- GitHub Pages workflow, publication, and live verification (Phase 6).
 
 ## Phase 2 - Split HTML, CSS, and JavaScript
 
@@ -116,7 +116,7 @@ Source fixes committed as `a225358` and `0a02580`. Full findings are in `docs/QU
 2. **History panel was not keyboard-accessible (`0a02580`).** Once populated, `#history` became a scroll container with no focus target and failed axe's `scrollable-region-focusable` rule. It now has `tabindex="0"` and an inset `:focus-visible` outline; Page Down scrolls it.
 3. **Narrow dialog body was not keyboard-accessible (`0a02580`).** The shared `#modalBody` could overflow in the help dialog at 390 px and also failed `scrollable-region-focusable`. It now has the same tab stop and focus treatment; dialog focus containment and Escape handling still pass.
 
-No Critical or High finding remains in the reviewed scope. Accepted items (restore keeps the autosave key, repeated solution-count contexts, no CSP, unencrypted local storage, bounded main-thread search) and deferred items (Phase 6 workflow review, real screen reader, Firefox/Safari, performance profiling) are recorded in `docs/QUALITY_AUDIT.md`.
+No Critical or High finding remains in the reviewed scope. Accepted items (restore keeps the autosave key, repeated solution-count contexts, no CSP, unencrypted local storage, bounded main-thread search) are recorded in `docs/QUALITY_AUDIT.md`, along with the later-resolved workflow review and the still-deferred real screen-reader, Firefox/Safari, and performance checks.
 
 ### Verification evidence
 
@@ -135,9 +135,9 @@ No Critical or High finding remains in the reviewed scope. Accepted items (resto
 | Phase 2 regressions | Core, autosave, `file://`, blocked storage | 19 / 19, 9 / 9, pass, pass |
 | Static checks | `node --check`, `git diff --check`, ID/handler/external-reference scan | Pass; 80 unique IDs; no inline handlers or external references |
 
-### Not yet covered (scheduled later)
+### Deferred at this point
 
-- GitHub Actions permissions, action pinning, Pages deployment, and live URL verification (Phase 6).
+- GitHub Actions permissions, action pinning, Pages deployment, and live URL verification were completed in Phase 6.
 
 ## Phase 4 - Branding and design
 
@@ -185,7 +185,7 @@ Phase 5 replaces the old prompt-pack README with user-facing documentation and a
 | File | Purpose |
 |---|---|
 | `README.md` | Product description, actual screenshots, features, rules, solver method, setup, storage, data format, structure, testing limits, contribution, security, and license. |
-| `CHANGELOG.md` | Keep a Changelog format with the initial 1.0.0 release recorded under `Unreleased` until deployment is verified. |
+| `CHANGELOG.md` | Keep a Changelog format with the initial 1.0.0 release entry, later dated after the live deployment was verified. |
 | `LICENSE` | Standard MIT text, copyright `knightlesssword`, 2026. |
 | `CONTRIBUTING.md` | Local setup, project constraints, code conventions, testing expectations, issue and PR guidance, and commit rules. |
 | `CODE_OF_CONDUCT.md` | Contributor Covenant 2.1 with official attribution and a GitHub-profile contact route instead of an invented email. |
@@ -206,7 +206,7 @@ The README hero uses the supplied app icon with a normal heading because the raw
 
 ### Templates
 
-The existing `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `config.yml`, and `.github/pull_request_template.md` were reviewed. They are concise, match the product, and contain no dead contact links. `config.yml` keeps `blank_issues_enabled: true` and an empty `contact_links` list rather than pointing at Discussions or private reporting features that are not verified as enabled. No template change was required.
+The existing `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `config.yml`, and `.github/pull_request_template.md` were reviewed. They are concise, match the product, and contain no dead contact links. In Phase 5, `config.yml` kept `blank_issues_enabled: true` and an empty `contact_links` list because Discussions and private reporting were not verified as enabled. Phase 6 enabled private vulnerability reporting and added that real contact link to `config.yml`.
 
 ### Verification evidence
 
@@ -215,7 +215,7 @@ The existing `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `conf
 | Screenshot capture | Temporary Playwright run against `http://127.0.0.1:8765/` | 2 actual captures; 1281 × 1388; 2 cats, 4 candidates, unique solution; no overflow or console errors |
 | Internal links and images | Temporary Markdown link/anchor checker | 33 files, 28 relative targets, 0 missing, 0 unbalanced fences |
 | External links | `curl.exe` checks for public links | 12 / 12 returned HTTP 200 |
-| Pages target | `https://knightlesssword.github.io/meowdoku-solver/` | HTTP 404; expected until Phase 6 deploys |
+| Pages target | `https://knightlesssword.github.io/meowdoku-solver/` | HTTP 404 at Phase 5 time; Phase 6 deployed it and the live URL now returns HTTP 200 |
 | Local app | `http://127.0.0.1:8765/` | HTTP 200 |
 | JavaScript syntax | `node --check js/app.js` | Pass |
 | Static HTML/CSS/JS inventory | Temporary static checker | 80 unique IDs; no duplicate IDs, inline handlers, or external references |
@@ -233,11 +233,79 @@ The existing `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `conf
 7. The wordmark is documented as a light-surface asset. The README uses the theme-safe icon-and-heading hero instead.
 8. Local test paths in the public reports were reduced to `$env:TEMP\opencode` and `file:///<repository-root>/...` so the documentation does not publish a workstation username or absolute local path.
 
-### Remaining release work
+### Release follow-through
 
-- Push `main` to the GitHub remote and create the Pages deployment workflow (Phase 6).
-- Complete the workflow security review (D-01), configure Pages, and verify the public URL and deployed assets.
-- Recheck the README deployment status after the first successful deployment.
+Phase 6 pushed `main`, added the Pages workflow, configured Pages, and verified the live URL and application. See the Phase 6 section below.
+
+## Phase 6 - GitHub publication and Pages
+
+### Pre-push review
+
+- Working tree was clean on `main` before publication; no staged changes, no generated harness files, and no untracked artifacts were present.
+- The tracked tree was scanned for common credential patterns (`GitHub` tokens, cloud keys, private keys, and chat tokens); none were found.
+- One public reconnaissance document still contained a workstation-specific working directory. It was replaced with `<repository-root>` and committed as `850ed24` (`docs(project): remove local workspace path from baseline`).
+- `docs/implementation/` remains developer material in the repository. It is explicitly excluded from the Pages artifact.
+- No prompt-pack file was added to the README or runtime deployment.
+
+### Remote and source push
+
+- Added `origin` as `https://github.com/knightlesssword/meowdoku-solver.git`.
+- Pushed `main` normally with upstream tracking. The remote repository was empty before the push, so no merge or history reconciliation was needed.
+- Published source commit: `6cb94a4425189fc1f3098bd29d4b45840ae84eff`.
+- No rebase, reset, squash, amend of existing history, or force-push was performed.
+
+### Deployment workflow
+
+Implemented `.github/workflows/deploy-pages.yml` in `6cb94a4`:
+
+- Triggers: push to `main` and `workflow_dispatch`, with a job guard requiring `refs/heads/main`.
+- Permissions: `contents: write` only.
+- Concurrency: `pages` group, `cancel-in-progress: false`.
+- Action: `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1` (`v7.0.1`), pinned and verified through the GitHub API.
+- Validation: required runtime files exist and `node --check js/app.js` passes.
+- Artifact: `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, and `.nojekyll`, exactly five files.
+- Publish: fetch the existing `gh-pages` branch, append a normal commit, and `git push origin HEAD:gh-pages`. An orphan branch is created only when the branch is absent.
+- Safety: no force-push, no destructive orphan replacement of an existing branch, no PR code deployment, and no recursive `gh-pages` trigger.
+- The branch-update shell was simulated locally twice: the first run created an initial commit, and the second appended a second commit with the first as its parent.
+
+### Workflow and Pages evidence
+
+| Item | Observed value |
+|---|---|
+| Push workflow run | `41068060948`, success, commit `6cb94a4` |
+| Manual workflow run | `41068782251`, success, no-op because the artifact was unchanged |
+| `gh-pages` commit | `7f3fc837f07d6e06089580047cf19a07d05f94b4` |
+| `gh-pages` files | `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg` |
+| Pages configuration | source `gh-pages`, path `/`, build type `legacy`, HTTPS enforced |
+| Pages build | `1327302791`, status `built` |
+| Public URL | <https://knightlesssword.github.io/meowdoku-solver/> |
+| HTTP checks | `/`, HTML, CSS, JS, SVG, and `.nojekyll` all HTTP 200 with expected types |
+
+### Live verification
+
+| Check | Result |
+|---|---|
+| Initial load | HTTPS origin; title and `h1` `Meowdoku Solver`; 64 cells; 12 palette colours; Paint/Erase/Cat; icon 256 × 256; relative favicon; grid role |
+| Import and solve | 6 × 6 fixture imported; 36 painted cells; 2 manual cats; `Unique solution`; 4 candidates; `Step 1 of 4`; next/apply enabled |
+| Editing and autosave | 4 × 4 resize; paint, erase, cat; Validate wrote `meowdoku:autosave:v1`; expected rule violation shown |
+| Save/load | Named save under `cat-solver:Live Save Test`; survived reload; load dialog restored 16 painted cells |
+| Export | `Live-Export-Test.json`; version 2; 8 × 8; 64 cells; no `maxRegion` |
+| Theme and responsive | Dark/light toggle persisted; 390 px viewport had no horizontal overflow and used three palette columns |
+| Help dialog | Opened, closed on Escape, restored focus to Help; focus containment covered by the Phase 3 suite |
+| Console and network | No page or console errors; five initialization requests, all same-origin; no failed requests |
+
+### Repository settings
+
+- Private vulnerability reporting was enabled and linked from `SECURITY.md` and `.github/ISSUE_TEMPLATE/config.yml`.
+- The live demo and release status were updated in `README.md`, `CHANGELOG.md`, `docs/DEPLOYMENT.md`, `docs/TESTING.md`, and `docs/QUALITY_AUDIT.md`.
+
+### Outstanding limitations
+
+- Firefox, Safari, real screen readers, physical touch devices, and low-end performance remain unverified.
+- The workflow validates syntax and publishes but does not run the browser/axe suites.
+- No branch protection or GitHub environment approval gate is configured.
+- The live `gh-pages` history is one commit; non-destructive appends were verified by local simulation and the no-op dispatch, not by a second live content change.
+- The temporary Playwright/axe harness remains outside version control.
 
 ## Commit log
 
@@ -253,3 +321,6 @@ The existing `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `conf
 - `121f228` docs(architecture): document runtime and deployment
 - `848157f` docs(project): add license and contributor policies
 - `d2271f6` docs(readme): replace prompt pack with application guide
+- `dcaca9f` docs(project): record phase 5 documentation validation
+- `850ed24` docs(project): remove local workspace path from baseline
+- `6cb94a4` ci(pages): publish the static app to gh-pages

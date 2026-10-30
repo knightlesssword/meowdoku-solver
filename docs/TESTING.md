@@ -1,7 +1,7 @@
 # Meowdoku Solver - Test Report
 
 - **Test date:** 2026-10-30
-- **Scope:** Phase 3 security, solver, UI, and accessibility audit plus fixes; Phase 4 branding rerun; Phase 5 documentation validation.
+- **Scope:** Phase 3 security, solver, UI, and accessibility audit plus fixes; Phase 4 branding rerun; Phase 5 documentation validation; Phase 6 GitHub Pages publication and live smoke tests.
 - **Status:** All executed suites passed after fixes. No test remains failing. Deferred coverage is listed at the end.
 - **Detailed findings:** `docs/QUALITY_AUDIT.md`. Phase-by-phase execution history: `docs/IMPLEMENTATION_REPORT.md`.
 
@@ -168,9 +168,9 @@ All three fixes were followed by the full regression run listed above. No unrela
 
 ## Pass / fail / blocked
 
-- **Passed:** every executed static, browser, security, solver, keyboard, visual, branding, and accessibility check listed above and in the Phase 4 section below.
+- **Passed:** every executed static, browser, security, solver, keyboard, visual, branding, accessibility, documentation, workflow, and live-site check listed above and in the Phase 4, Phase 5, and Phase 6 sections.
 - **Failed:** none in the final run.
-- **Blocked / not executed:** real screen-reader testing, Firefox/Safari, physical touch devices, low-end performance profiling, and GitHub Actions security review. Reasons are recorded in `docs/QUALITY_AUDIT.md` (D-01 through D-04).
+- **Blocked / not executed:** real screen-reader testing, Firefox/Safari, physical touch devices, and low-end performance profiling. The GitHub Actions security review is resolved in Phase 6 (D-01); the remaining deferred items are D-02 through D-04 in `docs/QUALITY_AUDIT.md`.
 
 ## Known gaps and limitations
 
@@ -182,8 +182,8 @@ All three fixes were followed by the full regression run listed above. No unrela
 6. **Cap path uses a patched clock.** The `Search inconclusive` fixture temporarily replaced `performance.now` in the test page to force the time limit deterministically. Application code was not modified for that test.
 7. **Temporary harness.** Playwright/axe scripts live outside version control, so another tester must recreate them or inspect the recorded commands and outcomes. No runtime dependency was added to the project.
 8. **Storage blocking is emulated.** The blocked-storage case used an init script that makes the `localStorage` getter throw; it was not tested in every browser's private mode.
-9. **No CSP test.** No Content Security Policy is present, so none was exercised. If Phase 6 adds one, the inline theme bootstrap, local SVG favicon, inline SVG `<use>` references, and downloads must be retested.
-10. **Workflow checks are deferred.** There is no GitHub Actions workflow to test until Phase 6; least-privilege permissions and action SHA pinning remain a release gate.
+9. **No CSP test.** No Content Security Policy is present, so none was exercised. If a future deployment change adds one, the inline theme bootstrap, local SVG favicon, inline SVG `<use>` references, and downloads must be retested.
+10. **Workflow checks are resolved.** Phase 6 added a pinned, main-only, least-privilege workflow and verified both the push run and a manual no-op dispatch. The workflow still does not run the browser or axe suites.
 
 ## Phase 4 branding checks (2026-10-30)
 
@@ -248,7 +248,7 @@ The capture run reported no horizontal overflow, no page errors, and no console 
 | Code fences | 0 unbalanced fences |
 | External public links | 12 non-Pages links returned HTTP 200 |
 | Local app server | `http://127.0.0.1:8765/` returned HTTP 200 |
-| Deployment target | `https://knightlesssword.github.io/meowdoku-solver/` returned HTTP 404; expected because Phase 6 has not deployed yet |
+| Deployment target | `https://knightlesssword.github.io/meowdoku-solver/` returned HTTP 404 at Phase 5 time; Phase 6 later deployed it and the live URL returned HTTP 200 |
 | JavaScript syntax | Pass |
 | Static HTML/CSS/JS inventory | 80 unique IDs; no duplicate IDs, inline handlers, or external references |
 | Core browser smoke rerun | 19 / 19 pass |
@@ -267,12 +267,80 @@ The user-facing documents were checked against `js/app.js` and `index.html` for:
 - schema versions 1-2, the ignored `maxRegion` field, the 5 MB import limit, and atomic rejection;
 - autosave timing, empty-board clearing, startup recovery, and failed-write cleanup;
 - the fixed title, theme support, keyboard paths, and lack of runtime dependencies;
-- the fact that Pages deployment and the public URL are not yet verified.
+- the fact that Pages deployment and the public URL were not yet verified at Phase 5 time (verified in Phase 6).
 
 ### Phase 5 gaps
 
 1. **No Markdown linter.** Formatting was checked with the link/fence script and manual review; no Markdown linter was installed.
 2. **No GitHub-rendered preview.** The README `<picture>` theme switching and badge rendering were not viewed on github.com in this environment. The underlying image paths and files were verified locally.
 3. **External links are point-in-time.** The 12 checked links returned HTTP 200 on 2026-10-30; link rot can change that later.
-4. **Pages remains pending.** The target URL is intentionally a 404 until Phase 6 deploys and verifies it.
+4. **Pages was pending at Phase 5 time.** Phase 6 later deployed it and verified the live URL and application.
 5. **No new browser suite.** The Phase 5 run was a core smoke rerun because only docs and screenshots changed; the Phase 4 full regression results still apply to the unchanged application source.
+
+## Phase 6 release and live-site checks (2026-10-30)
+
+### Publication
+
+| Item | Observed value |
+|---|---|
+| Source branch | `main` |
+| Source commit | `6cb94a4425189fc1f3098bd29d4b45840ae84eff` |
+| Workflow commit | `6cb94a4` (`ci(pages): publish the static app to gh-pages`) |
+| Push workflow run | `41068060948`, success |
+| Manual workflow run | `41068782251`, success; no new deployment commit because the artifact was unchanged |
+| `gh-pages` commit | `7f3fc837f07d6e06089580047cf19a07d05f94b4` |
+| `gh-pages` files | `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg` |
+| Pages build | `1327302791`, status `built` |
+| Pages source | `gh-pages`, path `/`, build type `legacy`, HTTPS enforced |
+| Public URL | <https://knightlesssword.github.io/meowdoku-solver/> |
+
+### Workflow validation
+
+- `.github/workflows/deploy-pages.yml` parsed as valid YAML with Python's YAML loader.
+- `actions/checkout` is pinned to `3d3c42e5aac5ba805825da76410c181273ba90b1` (v7.0.1), resolved from the official release and verified through the GitHub API.
+- The workflow requests only `contents: write`, runs only for `refs/heads/main`, uses the `pages` concurrency group, and has a 10-minute timeout.
+- The runtime artifact stage asserts exactly five files and prints the list.
+- A local Git Bash simulation of the publish shell created an initial `gh-pages` commit and then appended a second commit with the first as its parent. The second clone showed both commits, the updated file, and the marker change.
+- The real workflow's first run created `gh-pages`; the manual dispatch fetched and inspected the existing branch and exited without a commit.
+
+### HTTP checks
+
+| URL | Status | Content type |
+|---|---:|---|
+| `/` | 200 | `text/html; charset=utf-8` |
+| `/index.html` | 200 | `text/html; charset=utf-8` |
+| `/css/style.css` | 200 | `text/css; charset=utf-8` |
+| `/js/app.js` | 200 | `application/javascript; charset=utf-8` |
+| `/assets/branding/app-icon.svg` | 200 | `image/svg+xml` |
+| `/.nojekyll` | 200 | `application/octet-stream` |
+
+### Live browser smoke tests
+
+Commands:
+
+```powershell
+node $env:TEMP\opencode\phase6-live-smoke.js
+node $env:TEMP\opencode\phase6-live-editing.js
+node $env:TEMP\opencode\phase6-live-persistence.js
+node $env:TEMP\opencode\phase6-live-export.js
+```
+
+| Suite | Checks | Result |
+|---|---|---:|
+| Live initialization and solve | HTTPS origin, title, `h1`, 64 cells, 12 palette colours, 3 modes, 256 × 256 header icon, relative favicon, grid role, import 6 × 6 fixture, 2 cats, 36 painted cells, `Unique solution`, 4 candidates, `Step 1 of 4`, next/apply enabled, theme persistence, 390 px layout with 3 palette columns and no overflow | Pass |
+| Live editing and autosave | Resize to 4 × 4, paint, erase, cat, Validate, `meowdoku:autosave:v1` written, diagnostics reported the expected rule violation | Pass |
+| Live save/load and help | Named save under `cat-solver:Live Save Test`, reload, load dialog item, restore 16 painted cells, help dialog opens, Escape closes and restores help-button focus | Pass |
+| Live export | Download name `Live-Export-Test.json`, version 2, 8 × 8, 64 cells, no `maxRegion`, expected keys | Pass |
+| Console and network | No page errors or console errors; 5 initialization requests, all same-origin; no failed requests | Pass |
+
+The live tests used the same temporary Playwright/Chromium harness as Phase 3, pointed at the public HTTPS origin rather than the local server. They did not modify application source.
+
+### Release gaps
+
+1. **Chromium only.** Firefox, Safari, and real mobile browsers were not available for the live or local runs.
+2. **No real assistive-technology session.** Axe and keyboard tests still do not prove screen-reader announcement or WCAG conformance.
+3. **No physical touch test.** Pointer events were exercised with a mouse; real touch scrolling and palm rejection were not tested.
+4. **No performance profile.** Low-end hardware and long sessions were not measured.
+5. **No committed CI test suite.** The workflow validates syntax and publishes; it does not run the browser/axe suites. The harness remains outside version control.
+6. **No branch protection or environment approval.** The repository relies on maintainer account security and the main-only workflow guard.
+7. **Deployment history is one commit.** The first live deployment had no prior `gh-pages` history to append to. Non-destructive update behavior was verified by the local simulation and the no-op dispatch, not by a second live content change.

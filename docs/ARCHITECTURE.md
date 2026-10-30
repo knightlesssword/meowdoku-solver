@@ -298,7 +298,7 @@ The app has a small attack surface but not zero risk.
 - The shared validator bounds every imported/saved/recovered value before use.
 - Imports are size-limited; export names are sanitized; object URLs are revoked.
 - Brand SVGs are local, self-contained vectors with no scripts, event handlers, external references, embedded images, or `foreignObject`.
-- There is no CSP or hosting header configuration in the app itself. This is an accepted residual risk to revisit during deployment hardening.
+- There is no CSP or hosting header configuration in the app itself. This is an accepted residual risk to revisit in future hosting hardening.
 - `localStorage` is unencrypted and clearable; it is not a secret store or backup.
 
 See [`QUALITY_AUDIT.md`](QUALITY_AUDIT.md) for findings, accepted risks, and deferred work.
@@ -335,4 +335,4 @@ See [`QUALITY_AUDIT.md`](QUALITY_AUDIT.md) for findings, accepted risks, and def
 - `localStorage` is origin-bound, unencrypted, and clearable; there is no sync or backup.
 - Firefox, Safari, real screen readers, and physical touch devices are not verified in the recorded test environment.
 - There is no committed CI test suite or visual-regression baseline.
-- The deployment workflow and Pages verification are completed in the release phase; see [`DEPLOYMENT.md`](DEPLOYMENT.md).
+- Deployment uses a pinned GitHub Actions workflow and a generated `gh-pages` branch; the live site was verified on 2026-10-30. See [`DEPLOYMENT.md`](DEPLOYMENT.md).

@@ -28,9 +28,9 @@ Meowdoku Solver is a browser-only puzzle tool. Paint a grid into connected colou
 
 ## Live demo
 
-**Deployment target:** <https://knightlesssword.github.io/meowdoku-solver/>
+**Play it here:** <https://knightlesssword.github.io/meowdoku-solver/>
 
-> **Status:** GitHub Pages publication is handled in the repository's release phase. The URL above is the intended public address; it had not been verified as live when this document was written. Use the local setup below until the first deployment is confirmed.
+The site is published from the generated `gh-pages` branch by a GitHub Actions workflow on every push to `main`. The first deployment was verified on 2026-10-30. Local setup is still available below.
 
 ## Features
 
@@ -190,7 +190,7 @@ The executed checks and their exact environment are recorded in [`docs/TESTING.m
 - Axe 4.10.2 scans with zero reported violations across the tested empty and populated states, in both themes and at desktop and mobile widths.
 - Static checks for JavaScript syntax, duplicate IDs, inline handlers, external references, and asset paths.
 
-This is not a claim of complete accessibility or cross-browser support. Firefox and Safari, real screen readers, physical touch devices, low-end performance, and a production Pages deployment were not verified in this environment. Axe zero violations do not prove WCAG conformance. There is no committed CI test suite; the browser harness lived outside the repository and is described in the test report.
+This is not a claim of complete accessibility or cross-browser support. Firefox and Safari, real screen readers, physical touch devices, and low-end performance were not verified in this environment. The GitHub Pages deployment itself was verified on 2026-10-30, including a live import-and-solve smoke test. Axe zero violations do not prove WCAG conformance. There is no committed CI test suite; the browser harness lived outside the repository and is described in the test report.
 
 ## Contributing
 

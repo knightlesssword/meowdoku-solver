@@ -2,9 +2,9 @@
 
 All notable changes to Meowdoku Solver are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The initial public version is **1.0.0**; it is listed under `Unreleased` until the first deployment is verified.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2026-10-30
 
 ### Added
 
@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Dark and light themes, responsive desktop/tablet/mobile layouts, reduced-motion handling, keyboard-accessible dialogs, focusable scroll regions, and skip navigation.
 - Supplied app icon and horizontal wordmark assets, including the icon as the header mark and local SVG favicon.
 - Project documentation, issue and pull-request templates, MIT license, contribution guide, code of conduct, and security policy.
+- GitHub Actions deployment from `main` to `gh-pages`, publishing only the runtime HTML, CSS, JavaScript, app icon, and `.nojekyll`. The initial public site went live at <https://knightlesssword.github.io/meowdoku-solver/> on 2026-10-30.
 
 ### Changed
 
@@ -46,4 +47,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## Release links
 
-- [Unreleased changes](https://github.com/knightlesssword/meowdoku-solver/commits/main)
+- [Version history](https://github.com/knightlesssword/meowdoku-solver/commits/main)
