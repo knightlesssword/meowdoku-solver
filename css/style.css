@@ -223,17 +223,14 @@ svg { display: block; }
   min-width: 0;
 }
 
+/* Supplied app icon. The artwork carries its own cream tile and rounded
+   corners, so the outline follows the alpha edge instead of a CSS box. */
 .brand-mark {
-  display: grid;
-  place-items: center;
   width: 42px;
   height: 42px;
   flex: none;
-  border-radius: 12px;
-  background: var(--accent);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  filter: drop-shadow(0 0 1px var(--border-strong)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.16));
 }
-.brand-mark svg { width: 36px; height: 36px; }
 
 .brand-copy { min-width: 0; }
 .brand h1 {
@@ -1473,8 +1470,7 @@ kbd {
   .app-shell { padding-inline: 10px; }
   .app-header { padding: 13px 0 12px; gap: 8px; }
   .brand { gap: 9px; }
-  .brand-mark { width: 36px; height: 36px; border-radius: 10px; }
-  .brand-mark svg { width: 31px; height: 31px; }
+  .brand-mark { width: 36px; height: 36px; }
   .brand h1 { font-size: 16px; }
   .header-actions { gap: 4px; }
   .header-actions .icon-btn { width: 34px; height: 34px; }
