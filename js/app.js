@@ -374,7 +374,7 @@ function openHelpDialog() {
         <span><kbd>Ctrl</kbd> + <kbd>S</kbd> save</span>
       </div>
     </section>
-    <div class="rules-callout"><strong>Local-first.</strong> Saved puzzles and your theme preference stay in this browser. JSON import and export are available from the File menu.</div>
+    <div class="rules-callout"><strong>Local-first.</strong> Saved puzzles stay in this browser. Solver cap: 20,000 solutions / 3 s; capped results are provisional. JSON import and export are available from the File menu.</div>
   `;
   const close = makeDialogButton("Got it", { variant: "primary", value: null, autofocus: true });
   return openDialog({
@@ -1797,7 +1797,7 @@ function renderCandidatePanel() {
   }
 
   if (!solver) {
-    dom.candidateSubtitle.textContent = "Solve to calculate";
+    dom.candidateSubtitle.textContent = "";
     dom.candidateResults.replaceChildren(makeEmptyState(
       "target",
       "Solve the puzzle to see candidate locations grouped by colour."
@@ -1924,6 +1924,9 @@ function applyStep() {
   updateCandidateToggle();
   addHistory("forced", `Applied the forced cat at ${coord(step.cell)} in ${lowerColorName(step.color)}.`);
   toast(`Placed a forced cat at ${coord(step.cell)}.`, "success");
+  // Recompute the remaining deductions immediately so the next forced step
+  // is available without making the user press Solve again.
+  solve();
 }
 
 

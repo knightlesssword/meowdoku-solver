@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in index.html css/style.css js/app.js assets/branding/app-icon.svg; do
+          for file in index.html css/style.css js/app.js assets/branding/app-icon.svg assets/branding/logo-horizontal.svg; do
             test -f "$file" || { echo "Missing required file: $file"; exit 1; }
           done
           node --check js/app.js
@@ -44,9 +44,10 @@ jobs:
           cp css/style.css "$SITE_DIR/css/"
           cp js/app.js "$SITE_DIR/js/"
           cp assets/branding/app-icon.svg "$SITE_DIR/assets/branding/"
+          cp assets/branding/logo-horizontal.svg "$SITE_DIR/assets/branding/"
           touch "$SITE_DIR/.nojekyll"
           find "$SITE_DIR" -type f -printf '%P\n' | sort
-          test "$(find "$SITE_DIR" -type f | wc -l)" -eq 5
+          test "$(find "$SITE_DIR" -type f | wc -l)" -eq 6
 
       - name: Publish gh-pages
         shell: bash
