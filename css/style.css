@@ -671,6 +671,8 @@ svg { display: block; }
   display: grid;
   place-items: center;
   min-width: 0;
+  /* Keep the grid track authoritative: cat icons must never inflate a cell. */
+  min-height: 0;
   padding: 0;
   border: 0;
   border-radius: clamp(4px, 0.7vw, 8px);
@@ -738,7 +740,13 @@ svg { display: block; }
 }
 .cell.is-invalid-cat { color: var(--danger-text); }
 
+/* The sprite <svg> has no intrinsic size, so a percentage height would be
+   resolved against the default 150px SVG height and stretch the cell. Take it
+   out of flow and size it explicitly against the (definite) cell box. */
 .cat-icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
   width: 62%;
   height: 62%;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.32));
