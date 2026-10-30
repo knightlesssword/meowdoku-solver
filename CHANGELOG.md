@@ -4,6 +4,12 @@ All notable changes to Meowdoku Solver are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Placing a cat made the cell grow to the SVG's default 150 px height and overlap the rows beneath it, breaking the grid layout. Cat icons are now absolutely positioned and sized against the cell, and cells cannot expand past their grid track.
+
 ## [1.0.0] - 2026-10-30
 
 ### Added
