@@ -1,7 +1,7 @@
 # Meowdoku Solver - Security, Solver, UI, and Accessibility Audit
 
-- **Audit date:** 2026-10-30
-- **Scope:** working tree after Phase 2 (`dfa3b26`) plus the Phase 3 fixes recorded below.
+- **Audit date:** 2026-10-30.
+- **Scope:** Phase 3 audit of the working tree after Phase 2 (`dfa3b26`) plus the Phase 3 fixes, revalidated after the Phase 4 branding integration and Phase 5 documentation.
 - **Auditor:** primary orchestrator, acting as the sole integration owner.
 - **Method:** source review, static scans, temporary Playwright/axe browser harness, and manual inspection of real Chromium renders. Test details and commands are in `docs/TESTING.md`.
 - **Overall result:** no known Critical or High issue remains in the reviewed scope. Three confirmed defects were fixed and regression-tested. Accepted and deferred items are listed separately. This audit does not claim complete security or WCAG conformance.
@@ -88,7 +88,7 @@ No unresolved Critical, High, or Medium finding is known after the fixes below.
 - **Severity:** Informational; accepted.
 - **Affected:** `cat-solver:` named saves, `cat-solver-theme`, and `meowdoku:autosave:v1`.
 - **Behaviour:** Data is stored unencrypted in same-origin `localStorage`, can be read by scripts on that origin, and can be cleared by the browser or user.
-- **Why accepted:** No credentials or secrets are stored. The UI describes the app as local-first, and JSON export is available. Documentation must not call local storage encrypted, confidential, or a backup. Phase 5 should repeat this in user-facing documentation.
+- **Why accepted:** No credentials or secrets are stored. The UI describes the app as local-first, and JSON export is available. Documentation must not call local storage encrypted, confidential, or a backup. The README and `SECURITY.md` now repeat this limitation.
 - **Evidence:** Blocked-storage and corrupt-value tests produce actionable messages and do not crash the app.
 
 ### A-05 - Synchronous bounded search can block the UI
@@ -221,6 +221,27 @@ The inconclusive case required a temporary test-only `performance.now` patch to 
 - Reduced motion collapses transitions and animations under `prefers-reduced-motion: reduce`.
 - Limitations: axe zero violations is not proof of WCAG conformance; colour contrast was machine-checked but not expert-reviewed; no real screen-reader or cross-browser pass was possible (D-02, D-03).
 
+## Phase 4 and Phase 5 revalidation
+
+### Phase 4 branding
+
+- Both supplied SVGs were re-scanned after integration. They remain self-contained vectors with no scripts, event handlers, external references, embedded images, `<foreignObject>`, CSS `url()`, `@import`, or entities.
+- The favicon and decorative header `<img>` use a local repository path. Neither is injected as markup.
+- The brown horizontal wordmark is documented as a light-surface asset because it loses contrast on the dark app background. The app header uses the icon plus theme-aware text instead.
+- Header/favicon checks passed 6 / 6 across both themes and 1281/768/390 px, with no overflow. The full Phase 3 regression and axe reruns passed after the integration. Details are in `docs/TESTING.md`.
+
+No new security, solver, or accessibility finding was introduced by the branding change.
+
+### Phase 5 documentation
+
+- User-facing docs were written from the actual source and the recorded test evidence, not from the original prompt's assumptions. The checked claims are listed in `docs/TESTING.md`.
+- The README screenshots are real captures of the running app at 1281 × 1388. They contain only the sample puzzle, interface, and the committed brand artwork; no account, token, local path, or private browser data is visible.
+- The documentation states that `localStorage` is unencrypted and clearable, that the Pages URL was not yet verified, that the browser evidence is Chromium-only, and that no WCAG or security certification is claimed.
+- Internal links, image paths, and heading anchors were checked with a temporary script: 33 Markdown files, 28 relative targets, zero missing targets, zero unbalanced code fences. Public non-Pages links returned HTTP 200 at check time. The Pages target returned 404 because Phase 6 has not deployed yet.
+- No secret, token, or personal data was added to the documentation or screenshots. The deferred workflow-security review (D-01) remains a Phase 6 release gate.
+
+No new Critical, High, Medium, or Low finding was identified in the documentation pass.
+
 ## Residual risks
 
 1. Restored autosaves persist until Start fresh or a later Validate/Solve, so repeated prompts and pre-edit snapshots are possible (A-01).
@@ -232,4 +253,4 @@ The inconclusive case required a temporary test-only `performance.now` patch to 
 
 ## Gate decision
 
-The Phase 3 gate is satisfied for the reviewed scope: no known Critical or High issue remains, all confirmed defects were fixed and regression-tested, and the remaining items are accepted, deferred with an owner/phase, or documented residual risks. Phase 4 may proceed. Deployment remains blocked until the Phase 6 workflow checks (D-01) are completed and verified.
+The Phase 3 gate is satisfied for the reviewed scope: no known Critical or High issue remains, all confirmed defects were fixed and regression-tested, and the remaining items are accepted, deferred with an owner/phase, or documented residual risks. Phase 4 branding and Phase 5 documentation were revalidated without adding a new finding. Deployment remains blocked until the Phase 6 workflow checks (D-01) are completed and the public Pages URL is verified.

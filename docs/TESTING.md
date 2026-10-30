@@ -1,7 +1,7 @@
 # Meowdoku Solver - Test Report
 
 - **Test date:** 2026-10-30
-- **Scope:** Phase 3 security, solver, UI, and accessibility audit; includes fixes for three confirmed defects.
+- **Scope:** Phase 3 security, solver, UI, and accessibility audit plus fixes; Phase 4 branding rerun; Phase 5 documentation validation.
 - **Status:** All executed suites passed after fixes. No test remains failing. Deferred coverage is listed at the end.
 - **Detailed findings:** `docs/QUALITY_AUDIT.md`. Phase-by-phase execution history: `docs/IMPLEMENTATION_REPORT.md`.
 
@@ -16,8 +16,8 @@
 | Test runner | Temporary `playwright-core` 1.64.1 harness outside the repository |
 | Accessibility engine | `axe-core` 4.10.2, injected into the page at runtime |
 | App server | Local static HTTP server at `http://127.0.0.1:8765`, repository root |
-| Local-file case | `file:///D:/blep/FSProjects/cat-puzzle-solver/index.html` |
-| Project dependencies | None added. The harness lives in `C:\Users\abuba\AppData\Local\Temp\opencode` and is not committed. |
+| Local-file case | `file:///<repository-root>/index.html` |
+| Project dependencies | None added. The harness lives in `$env:TEMP\opencode` and is not committed. |
 
 ## Commands run
 
@@ -26,27 +26,27 @@ Static checks:
 ```powershell
 node --check js/app.js
 git diff --check
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-static-check.js
+node $env:TEMP\opencode\phase3-static-check.js
 ```
 
 Browser suites (each starts a fresh Chromium context and clears `localStorage` unless the case intentionally seeds it):
 
 ```powershell
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase2-core.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase2-autosave.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase2-file-protocol.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase2-storage-blocked.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-keyboard.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-security.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-solver-matrix.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-inconclusive.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-autosave-failure.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-controls.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-scroll-focus.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-axe.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-axe-final.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-visual.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase3-palette-shots.js
+node $env:TEMP\opencode\phase2-core.js
+node $env:TEMP\opencode\phase2-autosave.js
+node $env:TEMP\opencode\phase2-file-protocol.js
+node $env:TEMP\opencode\phase2-storage-blocked.js
+node $env:TEMP\opencode\phase3-keyboard.js
+node $env:TEMP\opencode\phase3-security.js
+node $env:TEMP\opencode\phase3-solver-matrix.js
+node $env:TEMP\opencode\phase3-inconclusive.js
+node $env:TEMP\opencode\phase3-autosave-failure.js
+node $env:TEMP\opencode\phase3-controls.js
+node $env:TEMP\opencode\phase3-scroll-focus.js
+node $env:TEMP\opencode\phase3-axe.js
+node $env:TEMP\opencode\phase3-axe-final.js
+node $env:TEMP\opencode\phase3-visual.js
+node $env:TEMP\opencode\phase3-palette-shots.js
 ```
 
 The server was started with Python's static HTTP server from the repository root:
@@ -192,10 +192,10 @@ Source integration: `f73f32c` (`feat(branding): use supplied app icon in header 
 Commands:
 
 ```powershell
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-asset-review.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-branding.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-file-check.js
-node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-wordmark.js
+node $env:TEMP\opencode\phase4-asset-review.js
+node $env:TEMP\opencode\phase4-branding.js
+node $env:TEMP\opencode\phase4-file-check.js
+node $env:TEMP\opencode\phase4-wordmark.js
 ```
 
 | Check | Result |
@@ -204,7 +204,7 @@ node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-wordmark.js
 | Asset geometry | `app-icon.svg` is 256 × 256 (1:1); `logo-horizontal.svg` is 940 × 260 and keeps that ratio |
 | HTTP delivery | Both assets returned HTTP 200 with `Content-Type: image/svg+xml` |
 | Header and favicon | 6 / 6 checks passed across dark/light themes and 1281/768/390 px: icon loads at 42 px (36 px mobile), `alt=""`, no header or page overflow |
-| Local file use | `file:///D:/blep/FSProjects/cat-puzzle-solver/index.html` loaded the icon at 256 × 256 with no page or console errors |
+| Local file use | `file:///<repository-root>/index.html` loaded the icon at 256 × 256 with no page or console errors |
 | Core regression rerun | 19 / 19 pass |
 | Autosave regression rerun | 9 / 9 pass |
 | `file://` and blocked-storage reruns | Both pass |
@@ -212,4 +212,67 @@ node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-wordmark.js
 | Axe rerun | Empty board 4 / 4 scans with zero violations; populated board/dialog matrix 18 / 18 scans with zero violations |
 | Full-page visual rerun | Dark/light at 1281, 768, and 390 px; no overflow; header icon legible on both themes |
 
-The horizontal wordmark was inspected on light and dark surfaces. Its cocoa wordmark and muted tagline lose contrast on the dark app background, so it is documented as a light-surface asset. The app header uses the icon with theme-aware text instead. README creation and the final hero choice remain Phase 5 work.
+The horizontal wordmark was inspected on light and dark surfaces. Its cocoa wordmark and muted tagline lose contrast on the dark app background, so it is documented as a light-surface asset. The app header uses the icon with theme-aware text instead. The Phase 5 README uses the icon-and-heading hero plus the two actual screenshots below.
+
+## Phase 5 documentation checks (2026-10-30)
+
+Source changed only in documentation and screenshots. The application files were not edited in this phase.
+
+Commands:
+
+```powershell
+node --check js/app.js
+node $env:TEMP\opencode\phase3-static-check.js
+node $env:TEMP\opencode\phase2-core.js
+node $env:TEMP\opencode\phase5-link-check.js
+curl.exe -s -o NUL -w "%{http_code}" -L http://127.0.0.1:8765/
+```
+
+### Screenshots
+
+The two README screenshots were captured from the running app at `http://127.0.0.1:8765/`, not fabricated or reused from the Figma inspiration file.
+
+| File | Dimensions | Bytes | State |
+|---|---:|---:|---|
+| `assets/screenshots/workspace-dark.png` | 1281 × 1388 | 143,059 | 6 × 6 fixture, 2 manual cats, 4 candidates, `Unique solution`, `Step 1 of 4` |
+| `assets/screenshots/workspace-light.png` | 1281 × 1388 | 145,826 | Same board and result in the light theme |
+
+The capture run reported no horizontal overflow, no page errors, and no console errors. Both images were opened and visually inspected before being referenced by the README.
+
+### Results
+
+| Check | Result |
+|---|---|
+| Documentation files present | README, CHANGELOG, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, `.gitignore`, `.editorconfig`, `docs/ARCHITECTURE.md`, `docs/DEPLOYMENT.md` |
+| Internal Markdown links and images | 33 Markdown files scanned; 28 relative targets checked; 0 missing files, 0 missing heading anchors |
+| Code fences | 0 unbalanced fences |
+| External public links | 12 non-Pages links returned HTTP 200 |
+| Local app server | `http://127.0.0.1:8765/` returned HTTP 200 |
+| Deployment target | `https://knightlesssword.github.io/meowdoku-solver/` returned HTTP 404; expected because Phase 6 has not deployed yet |
+| JavaScript syntax | Pass |
+| Static HTML/CSS/JS inventory | 80 unique IDs; no duplicate IDs, inline handlers, or external references |
+| Core browser smoke rerun | 19 / 19 pass |
+| Source screenshots | 1281 × 1388 natural dimensions; HTTP 200 with `image/png`; both load from `assets/screenshots/` |
+| Screenshot metadata | PNG chunks are `IHDR`, `sRGB`, `IDAT`, and `IEND` only; no `tEXt`, `iTXt`, `zTXt`, or `eXIf` metadata |
+
+### Documentation accuracy review
+
+The user-facing documents were checked against `js/app.js` and `index.html` for:
+
+- the four solver statuses and their meanings;
+- the 20,000-solution and 3-second caps;
+- the twelve palette colours, 6 / 4 / 3 grid, and absence of a bottom erase swatch;
+- connected regions, orthogonal connectivity, eight-way cat no-touching, and no maximum region size;
+- the `cat-solver:` named-save prefix, `meowdoku:autosave:v1`, and `cat-solver-theme` keys;
+- schema versions 1-2, the ignored `maxRegion` field, the 5 MB import limit, and atomic rejection;
+- autosave timing, empty-board clearing, startup recovery, and failed-write cleanup;
+- the fixed title, theme support, keyboard paths, and lack of runtime dependencies;
+- the fact that Pages deployment and the public URL are not yet verified.
+
+### Phase 5 gaps
+
+1. **No Markdown linter.** Formatting was checked with the link/fence script and manual review; no Markdown linter was installed.
+2. **No GitHub-rendered preview.** The README `<picture>` theme switching and badge rendering were not viewed on github.com in this environment. The underlying image paths and files were verified locally.
+3. **External links are point-in-time.** The 12 checked links returned HTTP 200 on 2026-10-30; link rot can change that later.
+4. **Pages remains pending.** The target URL is intentionally a 404 until Phase 6 deploys and verifies it.
+5. **No new browser suite.** The Phase 5 run was a core smoke rerun because only docs and screenshots changed; the Phase 4 full regression results still apply to the unchanged application source.

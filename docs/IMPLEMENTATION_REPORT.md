@@ -7,7 +7,7 @@ This is the running execution record. Evidence here was observed in the working 
 - Date: 2026-10-30.
 - Node.js v22.23.0; Git 2.53.0; GitHub CLI 2.55.0 (authenticated as `knightlesssword`); Python 3.12.3.
 - Browser used for desktop checks: Chromium 131.0.6778.33 (Playwright browser build `chromium-1148`) served over `http://127.0.0.1:8765`.
-- Headless checks: same Chromium build through a temporary `playwright-core` harness in `C:\Users\abuba\AppData\Local\Temp\opencode` (not a project dependency, not committed).
+- Headless checks: same Chromium build through a temporary `playwright-core` harness in `$env:TEMP\opencode` (not a project dependency, not committed).
 - No npm install, package manifest, or build system was added to the repository.
 
 ## Phase 0 - Reconnaissance
@@ -102,7 +102,7 @@ Committed as `db10496` (`refactor(app): split html css and javascript`).
 | Recovery lifecycle | Reload with valid autosave; Restore then reload; Start fresh | Restore recreated 2 painted cells; Start fresh removed the key and cleared the board |
 | Corrupt autosave | Invalid JSON in the key, reload | No modal; key removed; discard warning shown |
 | Storage write failure | `Storage.prototype.setItem` throws quota error, Validate | Validation completed; warning toast; Validate remained enabled |
-| Local file opening | `file:///D:/blep/FSProjects/cat-puzzle-solver/index.html` | Stylesheet and script loaded; 12 palette buttons; 64 cells; paint and Validate worked |
+| Local file opening | `file:///<repository-root>/index.html` | Stylesheet and script loaded; 12 palette buttons; 64 cells; paint and Validate worked |
 | Blocked storage | `localStorage` getter throws, app opened via `file://` | App loaded; theme toggle worked; Validate completed with a non-blocking autosave warning |
 | Browser console | Headless Chromium sessions | No page errors or console errors |
 
@@ -137,7 +137,6 @@ No Critical or High finding remains in the reviewed scope. Accepted items (resto
 
 ### Not yet covered (scheduled later)
 
-- README rewrite, including the final brand hero, and user-facing storage/export guidance (Phase 5).
 - GitHub Actions permissions, action pinning, Pages deployment, and live URL verification (Phase 6).
 
 ## Phase 4 - Branding and design
@@ -171,11 +170,74 @@ Both SVGs are self-contained vector artwork built from fixed-fill `<rect>`, `<pa
 | SVG source scan | Both files checked for scripts, handlers, external refs, embedded data, CSS URLs, and entities | Safe; no flags |
 | Asset geometry | Natural image dimensions | 256 × 256 and 940 × 260; wordmark ratio preserved |
 | Header/favicon matrix | Dark/light at 1281/768/390 px; icon size, alt, overflow, palette, modes | 6 / 6 pass |
-| Local file loading | `file:///D:/blep/FSProjects/cat-puzzle-solver/index.html` | Icon loads at 256 × 256; no page or console errors |
+| Local file loading | `file:///<repository-root>/index.html` | Icon loads at 256 × 256; no page or console errors |
 | Full browser regressions | Phase 2 core, autosave, `file://`, blocked storage | 19 / 19, 9 / 9, pass, pass |
 | Phase 3 suite rerun | Keyboard, security, solver matrix, inconclusive, autosave failure, controls, scroll focus | 13 / 13, 10 / 10, 11 / 11, pass, 5 / 5, 10 / 10, 4 / 4 |
 | Axe rerun | Empty board 4 scans; populated board/dialogs 18 scans | Zero violations |
 | Visual rerun | Full renders, dark/light, 1281/768/390 px | No overflow; header icon legible in both themes |
+
+## Phase 5 - Documentation, templates, and project files
+
+Phase 5 replaces the old prompt-pack README with user-facing documentation and adds the project files an open-source repository needs. No application source or runtime asset was changed.
+
+### Root files created or replaced
+
+| File | Purpose |
+|---|---|
+| `README.md` | Product description, actual screenshots, features, rules, solver method, setup, storage, data format, structure, testing limits, contribution, security, and license. |
+| `CHANGELOG.md` | Keep a Changelog format with the initial 1.0.0 release recorded under `Unreleased` until deployment is verified. |
+| `LICENSE` | Standard MIT text, copyright `knightlesssword`, 2026. |
+| `CONTRIBUTING.md` | Local setup, project constraints, code conventions, testing expectations, issue and PR guidance, and commit rules. |
+| `CODE_OF_CONDUCT.md` | Contributor Covenant 2.1 with official attribution and a GitHub-profile contact route instead of an invented email. |
+| `SECURITY.md` | Supported version, private reporting guidance, scope, and security-relevant design notes. |
+| `.gitignore` | Static-app-specific OS, editor, local harness, log, and environment entries. |
+| `.editorconfig` | UTF-8, LF, final newline, two-space indentation, and Markdown/YAML overrides. |
+
+### Documentation created or updated
+
+- `docs/ARCHITECTURE.md`: runtime model, state, coordinates, rendering, validation, solver, persistence, import/export, accessibility, security, invariants, extension guidance, and limitations.
+- `docs/DEPLOYMENT.md`: target topology, current unverified status, runtime artifact allowlist, required workflow behaviour, manual Pages settings, verification checklist, rollback, troubleshooting, and security notes.
+- `docs/TESTING.md`: Phase 5 screenshot, link, static, and smoke-check evidence plus gaps.
+- `docs/QUALITY_AUDIT.md`: Phase 4/5 revalidation and updated gate decision.
+- `docs/BRAND.md`: final README hero note and clarification that the screenshots are app captures, not converted logo files.
+- `docs/IMPLEMENTATION_REPORT.md`: this phase record.
+
+The README hero uses the supplied app icon with a normal heading because the raw brown wordmark is low-contrast on the dark app background. The two screenshots are actual captures from the running app, saved under `assets/screenshots/`. They are 1281 × 1388 and show the same 6 × 6 fixture in dark and light themes, with two manual cats, four candidates, a unique-solution result, and `Step 1 of 4`.
+
+### Templates
+
+The existing `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `config.yml`, and `.github/pull_request_template.md` were reviewed. They are concise, match the product, and contain no dead contact links. `config.yml` keeps `blank_issues_enabled: true` and an empty `contact_links` list rather than pointing at Discussions or private reporting features that are not verified as enabled. No template change was required.
+
+### Verification evidence
+
+| Check | Evidence | Result |
+|---|---|---|
+| Screenshot capture | Temporary Playwright run against `http://127.0.0.1:8765/` | 2 actual captures; 1281 × 1388; 2 cats, 4 candidates, unique solution; no overflow or console errors |
+| Internal links and images | Temporary Markdown link/anchor checker | 33 files, 28 relative targets, 0 missing, 0 unbalanced fences |
+| External links | `curl.exe` checks for public links | 12 / 12 returned HTTP 200 |
+| Pages target | `https://knightlesssword.github.io/meowdoku-solver/` | HTTP 404; expected until Phase 6 deploys |
+| Local app | `http://127.0.0.1:8765/` | HTTP 200 |
+| JavaScript syntax | `node --check js/app.js` | Pass |
+| Static HTML/CSS/JS inventory | Temporary static checker | 80 unique IDs; no duplicate IDs, inline handlers, or external references |
+| Core browser smoke rerun | Phase 2 core suite | 19 / 19 pass |
+| Source screenshots | Natural dimensions and visual inspection | 1281 × 1388; both themes legible; no private data |
+
+### Accuracy decisions
+
+1. The public Pages URL is described as the deployment target and explicitly marked unverified. The document does not claim the site is live.
+2. The README states that the app has no build step and no runtime dependencies, both verified from the repository and source.
+3. The README and data-format section document schema versions 1-2, the 5 MB import limit, the ignored `maxRegion` field, the 20,000-solution and 3-second solver caps, and the three storage keys.
+4. Storage is described as unencrypted, clearable, origin-bound, and not a backup.
+5. The test section states the Chromium-only evidence, the lack of real screen-reader and Firefox/Safari testing, and the absence of a committed CI suite. It does not claim WCAG conformance or a security certification.
+6. The README lists only the actual screenshots in `assets/screenshots/` and does not use the Figma inspiration banner as gameplay evidence.
+7. The wordmark is documented as a light-surface asset. The README uses the theme-safe icon-and-heading hero instead.
+8. Local test paths in the public reports were reduced to `$env:TEMP\opencode` and `file:///<repository-root>/...` so the documentation does not publish a workstation username or absolute local path.
+
+### Remaining release work
+
+- Push `main` to the GitHub remote and create the Pages deployment workflow (Phase 6).
+- Complete the workflow security review (D-01), configure Pages, and verify the public URL and deployed assets.
+- Recheck the README deployment status after the first successful deployment.
 
 ## Commit log
 
@@ -187,3 +249,7 @@ Both SVGs are self-contained vector artwork built from fixed-fill `<rect>`, `<pa
 - `a225358` fix(app): clear stale autosave on write failure
 - `0a02580` fix(a11y): make scrollable panels keyboard accessible
 - `f73f32c` feat(branding): use supplied app icon in header and favicon
+- `7d0265b` docs(branding): record supplied asset review and usage
+- `121f228` docs(architecture): document runtime and deployment
+- `848157f` docs(project): add license and contributor policies
+- `d2271f6` docs(readme): replace prompt pack with application guide
