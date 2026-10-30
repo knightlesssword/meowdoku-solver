@@ -52,6 +52,7 @@ The stylesheet is organized around tokens and components:
 - **Design tokens.** Dark is the default theme. `:root[data-theme="light"]` overrides the colour, surface, border, focus, and shadow tokens.
 - **Layout.** `.app-shell` max-width, a two-column `.workspace` with a flexible stage and a sidebar, and a stacking breakpoint at 1120 px.
 - **Components.** Header, status pill, buttons, segmented mode control, setup bar, board frame and rulers, palette, diagnostics, deduction cards, candidate lists, history, dialogs, toasts, footer.
+- **Board cells.** Cat icons are absolutely positioned inside their cell and cells are allowed to shrink with `min-height: 0`, so an SVG without an intrinsic size cannot inflate a grid track or overlap later rows.
 - **Responsive rules.** Additional breakpoints at 820 px, 720 px, and 430 px adjust the header, setup bar, palette (6 / 4 / 3 columns), board gaps, and typography.
 - **Accessibility.** Visible `:focus-visible` outlines, a skip link, reduced-motion handling, and board sizing that keeps the grid usable at narrow widths.
 - **Themes.** Colour is presentation only. Persisted puzzle data stores palette indices, never theme-specific colour strings.

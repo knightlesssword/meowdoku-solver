@@ -112,7 +112,7 @@ Phase 6 added `.github/workflows/deploy-pages.yml` in commit `6cb94a4`. The work
 - **Artifact allowlist:** only `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, and `.nojekyll` are staged. Documentation, templates, screenshots, tests, and local paths are excluded.
 - **Branch safety:** the publish step creates an orphan `gh-pages` only when the branch does not exist. Otherwise it builds on the fetched branch and uses ordinary `git push origin HEAD:gh-pages`. It never uses `--force`, `--force-with-lease`, or a destructive orphan replacement.
 - **No secrets:** the built-in `GITHUB_TOKEN` is used through the checkout action's persisted credentials; no repository secret is configured or printed.
-- **Evidence:** push run `41068060948` succeeded for `6cb94a4`; manual run `41068782251` succeeded as a no-op. `gh-pages` was created at `7f3fc83` with five files. The Pages build completed with status `built`, and the public URL returned HTTP 200. A local simulation of the publish shell appended a second deployment commit on top of the first, confirming non-destructive history growth.
+- **Evidence:** push run `41068060948` succeeded for `6cb94a4`; manual run `41068782251` succeeded as a no-op. `gh-pages` was created at `7f3fc83` with five files. The later cat-icon fix deployed in run `41073235011` and appended `0a57cf3` on top of `7f3fc83` without a force-push. Pages builds `1327302791` and `1327376367` completed with status `built`, and the public URL returned HTTP 200. The live append confirms non-destructive history growth.
 
 Residual deployment considerations: the repository has no environment approval gate or branch protection configured, and any future change to the workflow or Pages settings must be reviewed again. These are operational hardening items, not unresolved findings in the current release.
 
@@ -249,10 +249,11 @@ No new Critical, High, Medium, or Low finding was identified in the documentatio
 - **Repository:** public `knightlesssword/meowdoku-solver`; `main` pushed with all prior history preserved.
 - **Workflow:** `.github/workflows/deploy-pages.yml` at `6cb94a4`; `actions/checkout` pinned to the v7.0.1 commit; only `contents: write`; main-only; serialized by concurrency.
 - **Workflow runs:** push run `41068060948` succeeded for `6cb94a4`; manual `workflow_dispatch` run `41068782251` succeeded and produced no new deployment commit because the artifact was unchanged.
-- **Deployment branch:** `gh-pages` created at `7f3fc83` with `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, and `assets/branding/app-icon.svg` only.
-- **Pages configuration:** source `gh-pages`, path `/`, build type `legacy`, HTTPS enforced, status `built`.
+- **Deployment branch:** `gh-pages` has two commits: initial `7f3fc83` and cat-icon fix `0a57cf3`, both containing only `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, and `assets/branding/app-icon.svg`.
+- **Pages configuration:** source `gh-pages`, path `/`, build type `legacy`, HTTPS enforced, status `built`; latest build `1327376367`.
 - **Public site:** <https://knightlesssword.github.io/meowdoku-solver/> returned HTTP 200. HTML, CSS, JavaScript, SVG, and `.nojekyll` returned HTTP 200 with the expected content types.
 - **Live smoke tests:** the deployed app initialized with 64 empty cells and 12 palette colours; paint, erase, cat, validate/autosave, import, solve, candidate overlay, forced-step controls, named save/load, export, theme switch, help dialog, and a 390 px layout all passed. No page or console errors were observed, all five initial requests were same-origin, and export omitted `maxRegion`.
+- **Post-release layout fix:** `4c69130` prevents the cat SVG from inflating a grid cell. The live 4 × 4 through 10 × 10 matrix at 1281 px and 390 px passed 14 / 14 cases: square board, uniform cell sizes, correct row count, absolutely positioned cat inside the cell, and no horizontal overflow.
 - **Private vulnerability reporting:** enabled on the repository and linked from `SECURITY.md` and the issue-template configuration.
 
 No new Critical, High, Medium, or Low finding was introduced by publication. The live site is now verified; the remaining gaps are the previously recorded compatibility, assistive-technology, performance, and temporary-harness limitations.

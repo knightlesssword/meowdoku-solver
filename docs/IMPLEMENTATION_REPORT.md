@@ -275,10 +275,11 @@ Implemented `.github/workflows/deploy-pages.yml` in `6cb94a4`:
 | Push workflow run | `41068060948`, success, commit `6cb94a4` |
 | Manual workflow run | `41068782251`, success, no-op because the artifact was unchanged |
 | Post-documentation push run | `41069865740`, success, no-op; `gh-pages` remained at `7f3fc83` |
-| `gh-pages` commit | `7f3fc837f07d6e06089580047cf19a07d05f94b4` |
+| Cat-icon fix deploy run | `41073235011`, success, commit `4c69130` |
+| `gh-pages` commits | Initial `7f3fc83`; cat-icon fix `0a57cf3` (parent `7f3fc83`) |
 | `gh-pages` files | `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg` |
 | Pages configuration | source `gh-pages`, path `/`, build type `legacy`, HTTPS enforced |
-| Pages build | `1327302791`, status `built` |
+| Pages builds | `1327302791` and `1327376367`, both status `built` |
 | Public URL | <https://knightlesssword.github.io/meowdoku-solver/> |
 | HTTP checks | `/`, HTML, CSS, JS, SVG, and `.nojekyll` all HTTP 200 with expected types |
 
@@ -305,8 +306,29 @@ Implemented `.github/workflows/deploy-pages.yml` in `6cb94a4`:
 - Firefox, Safari, real screen readers, physical touch devices, and low-end performance remain unverified.
 - The workflow validates syntax and publishes but does not run the browser/axe suites.
 - No branch protection or GitHub environment approval gate is configured.
-- The live `gh-pages` history is one commit; non-destructive appends were verified by local simulation and the no-op dispatch, not by a second live content change.
+- The live `gh-pages` history is two commits; the cat-icon fix appended normally on top of the initial deployment.
 - The temporary Playwright/axe harness remains outside version control.
+
+## Post-release fix - Cat icons and grid tracks
+
+Committed by the repository owner as `4c69130` (`fix(board): keep cat icons from stretching grid cells`), with the user-facing note under `CHANGELOG.md` → `Unreleased`.
+
+### Defect
+
+A cat icon is an inline SVG from the shared sprite with no intrinsic size. Its `height: 62%` was resolving against the browser's default 150 px replaced-element height instead of the cell, so placing a cat could inflate the cell and overlap the rows below. The grid track was not authoritative.
+
+### Fix
+
+- `.cell` now sets `min-height: 0`, so a cell cannot grow past its grid track.
+- `.cat-icon` is taken out of flow with `position: absolute; inset: 0; margin: auto`, then sized to 62% of the definite cell box.
+- No markup, JavaScript, data format, or solver behaviour changed.
+
+### Verification
+
+- Live site: the deployed `gh-pages` commit `0a57cf3` contains the fix; workflow run `41073235011` succeeded and Pages build `1327376367` completed.
+- Layout matrix: boards 4 × 4 through 10 × 10 at 1281 px and 390 px, each with one cat. The board stayed square, all cells in a board matched, row counts matched `n`, the cat computed `position: absolute` and stayed inside its cell, and no horizontal overflow appeared. 14 / 14 cases passed.
+- The change was followed by a full live smoke rerun of the core import/solve flow. No page or console errors were observed.
+- `gh-pages` now has two commits: `7f3fc83` then `0a57cf3`, confirming the non-destructive append path on the live branch.
 
 ## Commit log
 
@@ -328,3 +350,6 @@ Implemented `.github/workflows/deploy-pages.yml` in `6cb94a4`:
 - `27bb0f1` chore(repo): link private vulnerability reporting
 - `443f4d8` docs(release): record verified GitHub Pages deployment
 - `b350cb4` docs(release): record the post-documentation deployment no-op
+- `6bd1b71` docs(release): complete the phase 6 commit log
+- `0e284da` docs(deploy): verify the published artifact allowlist
+- `4c69130` fix(board): keep cat icons from stretching grid cells

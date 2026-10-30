@@ -11,15 +11,16 @@
 | Item | Status on 2026-10-30 |
 |---|---|
 | Deployment workflow | `.github/workflows/deploy-pages.yml`, committed as `6cb94a4`. |
-| Workflow run | Push run `41068060948` succeeded for `6cb94a4`. Manual `workflow_dispatch` run `41068782251` also succeeded. |
-| `gh-pages` branch | Created by the workflow at commit `7f3fc83`; one initial deployment commit containing five files. |
-| GitHub Pages settings | Source `gh-pages`, path `/`, build type `legacy`; Pages build `1327302791` completed with status `built`. |
+| Workflow run | Initial push run `41068060948` succeeded for `6cb94a4`. Manual `workflow_dispatch` run `41068782251` and docs-only pushes also succeeded. The cat-icon fix deployed in run `41073235011` for `4c69130`. |
+| `gh-pages` branch | Two commits: initial deployment `7f3fc83` and cat-icon fix `0a57cf3`. The second commit has the first as its parent. |
+| GitHub Pages settings | Source `gh-pages`, path `/`, build type `legacy`; latest Pages build `1327376367` completed with status `built`. |
 | Public URL | HTTP 200 at <https://knightlesssword.github.io/meowdoku-solver/>. |
 | Runtime assets | `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, and `.nojekyll` all returned HTTP 200 with the expected content types. |
 | Artifact isolation | `/docs/`, `/README.md`, and `/.github/` returned HTTP 404; only the five intended files are deployed. |
 | Smoke test on the public site | Passed: import, unique-solution solve, candidate overlay, forced-step controls, theme switch, mobile width, named save/load, export, and help dialog. No page or console errors; all five requests were same-origin. |
+| Cat-icon layout fix | Passed on the live site at 4 × 4 through 10 × 10 on desktop and mobile: the board stayed square, every cell in a board matched its row/column size, the cat icon stayed absolute and inside its cell, and no horizontal overflow appeared. |
 
-The manual `workflow_dispatch` run was intentionally a no-op because the runtime artifact had not changed. It fetched the existing `gh-pages` branch and exited without adding a commit, confirming the update path does not rewrite history when there is nothing to publish.
+The manual `workflow_dispatch` run was intentionally a no-op because the runtime artifact had not changed. It fetched the existing `gh-pages` branch and exited without adding a commit, confirming the update path does not rewrite history when there is nothing to publish. The later cat-icon fix did produce a normal second deployment commit, confirming the append path on the live branch.
 
 ## Topology
 
@@ -152,10 +153,10 @@ Run these checks after the first deployment and after any workflow change.
 
 ### Workflow and branch
 
-- [x] The workflow run completed successfully (`41068060948`).
-- [x] The run used the expected commit SHA from `main` (`6cb94a4`).
-- [x] `gh-pages` contains the deployment commit (`7f3fc83`).
-- [x] The branch update is non-destructive: the workflow uses ordinary `git push`, and a local simulation appended a second deployment commit to an existing branch. The first live deployment was the initial branch commit, and the no-op dispatch confirmed the update path does not rewrite it.
+- [x] The workflow runs completed successfully (`41068060948`, `41073235011`, plus docs-only no-ops).
+- [x] The latest run used the expected commit SHA from `main` (`4c69130`).
+- [x] `gh-pages` contains the deployment commits (`7f3fc83`, then `0a57cf3`).
+- [x] The branch update is non-destructive: the workflow uses ordinary `git push`, and the live cat-icon deployment appended `0a57cf3` on top of `7f3fc83` with no force-push or orphan replacement.
 - [x] The artifact contains only runtime files plus `.nojekyll`.
 - [x] No documentation, test harness, secret, or local path is present in the artifact.
 

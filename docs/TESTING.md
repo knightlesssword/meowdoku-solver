@@ -1,7 +1,7 @@
 # Meowdoku Solver - Test Report
 
 - **Test date:** 2026-10-30
-- **Scope:** Phase 3 security, solver, UI, and accessibility audit plus fixes; Phase 4 branding rerun; Phase 5 documentation validation; Phase 6 GitHub Pages publication and live smoke tests.
+- **Scope:** Phase 3 security, solver, UI, and accessibility audit plus fixes; Phase 4 branding rerun; Phase 5 documentation validation; Phase 6 GitHub Pages publication and live smoke tests; post-release cat-icon grid layout fix.
 - **Status:** All executed suites passed after fixes. No test remains failing. Deferred coverage is listed at the end.
 - **Detailed findings:** `docs/QUALITY_AUDIT.md`. Phase-by-phase execution history: `docs/IMPLEMENTATION_REPORT.md`.
 
@@ -285,13 +285,15 @@ The user-facing documents were checked against `js/app.js` and `index.html` for:
 |---|---|
 | Source branch | `main` |
 | Source commit | `6cb94a4425189fc1f3098bd29d4b45840ae84eff` |
+| Latest source fix | `4c691302055f47f2c13af3b0098c672f6b44c9be` (`fix(board): keep cat icons from stretching grid cells`) |
 | Workflow commit | `6cb94a4` (`ci(pages): publish the static app to gh-pages`) |
 | Push workflow run | `41068060948`, success |
 | Manual workflow run | `41068782251`, success; no new deployment commit because the artifact was unchanged |
 | Post-documentation push run | `41069865740`, success; no new deployment commit; `gh-pages` remained at `7f3fc83` |
-| `gh-pages` commit | `7f3fc837f07d6e06089580047cf19a07d05f94b4` |
+| Cat-icon fix deploy run | `41073235011`, success; app commit `4c69130` |
+| `gh-pages` commits | Initial `7f3fc83`; cat-icon fix `0a57cf3` (parent `7f3fc83`) |
 | `gh-pages` files | `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg` |
-| Pages build | `1327302791`, status `built` |
+| Pages builds | `1327302791` and `1327376367`, both status `built` |
 | Pages source | `gh-pages`, path `/`, build type `legacy`, HTTPS enforced |
 | Public URL | <https://knightlesssword.github.io/meowdoku-solver/> |
 
@@ -302,7 +304,7 @@ The user-facing documents were checked against `js/app.js` and `index.html` for:
 - The workflow requests only `contents: write`, runs only for `refs/heads/main`, uses the `pages` concurrency group, and has a 10-minute timeout.
 - The runtime artifact stage asserts exactly five files and prints the list.
 - A local Git Bash simulation of the publish shell created an initial `gh-pages` commit and then appended a second commit with the first as its parent. The second clone showed both commits, the updated file, and the marker change.
-- The real workflow's first run created `gh-pages`; the manual dispatch fetched and inspected the existing branch and exited without a commit.
+- The real workflow's first run created `gh-pages`; the manual dispatch fetched and inspected the existing branch and exited without a commit. The cat-icon fix then produced a real second deployment commit `0a57cf3` on top of `7f3fc83`, confirming the live append path.
 
 ### HTTP checks
 
@@ -327,6 +329,7 @@ node $env:TEMP\opencode\phase6-live-smoke.js
 node $env:TEMP\opencode\phase6-live-editing.js
 node $env:TEMP\opencode\phase6-live-persistence.js
 node $env:TEMP\opencode\phase6-live-export.js
+node $env:TEMP\opencode\phase6-live-cat-layout.js
 ```
 
 | Suite | Checks | Result |
@@ -335,6 +338,7 @@ node $env:TEMP\opencode\phase6-live-export.js
 | Live editing and autosave | Resize to 4 × 4, paint, erase, cat, Validate, `meowdoku:autosave:v1` written, diagnostics reported the expected rule violation | Pass |
 | Live save/load and help | Named save under `cat-solver:Live Save Test`, reload, load dialog item, restore 16 painted cells, help dialog opens, Escape closes and restores help-button focus | Pass |
 | Live export | Download name `Live-Export-Test.json`, version 2, 8 × 8, 64 cells, no `maxRegion`, expected keys | Pass |
+| Cat-icon grid layout | Boards 4 × 4 through 10 × 10 at 1281 px and 390 px, each with one cat: board stayed square, all cells in a board matched, row counts matched, cat icon computed `position: absolute` and stayed inside its cell, no horizontal overflow | 14 / 14 pass |
 | Console and network | No page errors or console errors; 5 initialization requests, all same-origin; no failed requests | Pass |
 
 The live tests used the same temporary Playwright/Chromium harness as Phase 3, pointed at the public HTTPS origin rather than the local server. They did not modify application source.
@@ -347,4 +351,4 @@ The live tests used the same temporary Playwright/Chromium harness as Phase 3, p
 4. **No performance profile.** Low-end hardware and long sessions were not measured.
 5. **No committed CI test suite.** The workflow validates syntax and publishes; it does not run the browser/axe suites. The harness remains outside version control.
 6. **No branch protection or environment approval.** The repository relies on maintainer account security and the main-only workflow guard.
-7. **Deployment history is one commit.** The first live deployment had no prior `gh-pages` history to append to. Non-destructive update behavior was verified by the local simulation and the no-op dispatch, not by a second live content change.
+7. **Deployment history is two commits.** The live cat-icon fix appended `0a57cf3` to `7f3fc83` without a force-push or orphan replacement, so the non-destructive append path is now verified on the real branch. Only one content-changing deployment has been exercised.
