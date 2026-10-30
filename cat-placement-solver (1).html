@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23e6b35b'/%3E%3Cpath d='M17 34V19l8 6h14l8-6v15a15 15 0 0 1-30 0Z' fill='%23241a07'/%3E%3Ccircle cx='27' cy='34' r='2' fill='%23e6b35b'/%3E%3Ccircle cx='37' cy='34' r='2' fill='%23e6b35b'/%3E%3C/svg%3E">
 <meta name="theme-color" id="themeColor" content="#0b1016">
-<title>Cat Placement Solver</title>
+<title>Meowdoku Solver</title>
 <script>
 (() => {
   try {
@@ -251,17 +251,6 @@ svg { display: block; }
   letter-spacing: -0.025em;
   font-weight: 720;
 }
-.brand p {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.3;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 360px;
-}
 
 .header-actions {
   display: flex;
@@ -493,7 +482,7 @@ svg { display: block; }
 
 .setup-bar {
   display: grid;
-  grid-template-columns: minmax(170px, 1.35fr) minmax(98px, 0.62fr) minmax(104px, 0.66fr) minmax(236px, 1.35fr);
+  grid-template-columns: minmax(170px, 1.35fr) minmax(98px, 0.62fr) minmax(236px, 1.35fr);
   gap: 11px;
   align-items: end;
   padding: 12px;
@@ -835,16 +824,10 @@ svg { display: block; }
   letter-spacing: 0.075em;
   text-transform: uppercase;
 }
-.palette-status {
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.4;
-  text-align: right;
-}
 
 .palette {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 6px;
 }
 .swatch {
@@ -852,7 +835,8 @@ svg { display: block; }
   align-items: center;
   gap: 7px;
   min-width: 0;
-  min-height: 38px;
+  min-height: 40px;
+  height: 100%;
   padding: 5px 7px;
   border: 1px solid var(--border);
   border-radius: 7px;
@@ -890,27 +874,6 @@ svg { display: block; }
   overflow-wrap: anywhere;
 }
 
-.erase-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 42px;
-  padding: 7px 10px;
-  border: 1px dashed var(--border-strong);
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-2);
-  text-align: left;
-  transition: background var(--transition), border-color var(--transition), color var(--transition);
-}
-.erase-option:hover { background: var(--surface-2); color: var(--text); }
-.erase-option[aria-pressed="true"] {
-  border-style: solid;
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--text);
-}
 .erase-chip {
   display: grid;
   place-items: center;
@@ -922,19 +885,11 @@ svg { display: block; }
   background: repeating-linear-gradient(45deg, var(--surface-3) 0 4px, var(--surface) 4px 8px);
   color: var(--text-2);
 }
-.erase-option[aria-pressed="true"] .erase-chip { color: var(--accent-text); border-color: var(--accent); }
-.erase-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
-.erase-copy strong { font-size: 11.5px; font-weight: 650; }
-.erase-copy small { color: var(--muted); font-size: 10.5px; line-height: 1.35; }
-.erase-state {
-  flex: none;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.mode-indicator .erase-chip {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
 }
-.erase-option[aria-pressed="true"] .erase-state { color: var(--accent-text); }
 
 /* ---------- Action bar ---------- */
 
@@ -1511,12 +1466,12 @@ kbd {
   .sidebar-section:nth-child(2) { border-top: 0; }
   .sidebar-section:nth-child(odd) { border-right: 1px solid var(--border); }
   .board-shell { width: min(100%, 680px); }
+  .palette { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media (max-width: 820px) {
   .setup-bar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .field-name { grid-column: 1 / -1; }
-  .field-mode { grid-column: 1 / -1; }
   .status-pill { display: none; }
   .header-divider { display: none; }
   .board-hint { max-width: 52%; }
@@ -1529,7 +1484,6 @@ kbd {
   .brand-mark { width: 36px; height: 36px; border-radius: 10px; }
   .brand-mark svg { width: 31px; height: 31px; }
   .brand h1 { font-size: 16px; }
-  .brand p { font-size: 10.5px; max-width: 220px; }
   .header-actions { gap: 4px; }
   .header-actions .icon-btn { width: 34px; height: 34px; }
   .file-btn { min-height: 34px; padding-inline: 8px; font-size: 11.5px; }
@@ -1568,9 +1522,8 @@ kbd {
 }
 
 @media (max-width: 430px) {
-  .brand p { max-width: 150px; }
-  .setup-bar { grid-template-columns: 1fr 1fr; }
-  .field-mode { grid-column: 1 / -1; }
+  .setup-bar { grid-template-columns: 1fr; }
+  .field-mode { grid-column: auto; }
   .palette { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .board-shell { --ruler-size: 13px; --grid-gap: 3px; }
   .col-ruler, .row-ruler { font-size: 7.5px; }
@@ -1708,8 +1661,7 @@ kbd {
         </svg>
       </div>
       <div class="brand-copy">
-        <h1>Cat Placement Solver</h1>
-        <p id="contextLine">8 × 8 · Untitled puzzle</p>
+        <h1>Meowdoku Solver</h1>
       </div>
     </div>
     <div class="header-actions">
@@ -1784,23 +1736,6 @@ kbd {
             <option value="10">10 × 10</option>
           </select>
         </div>
-        <div class="field">
-          <label for="maxRegion">Max region</label>
-          <select id="maxRegion">
-            <option value="0">No limit</option>
-            <option value="4">4 cells</option>
-            <option value="5">5 cells</option>
-            <option value="6">6 cells</option>
-            <option value="7">7 cells</option>
-            <option value="8">8 cells</option>
-            <option value="9">9 cells</option>
-            <option value="10" selected>10 cells</option>
-            <option value="12">12 cells</option>
-            <option value="15">15 cells</option>
-            <option value="20">20 cells</option>
-            <option value="25">25 cells</option>
-          </select>
-        </div>
         <div class="field field-mode">
           <span class="field-label" id="modeLabel">Paint action</span>
           <div class="segmented" role="group" aria-labelledby="modeLabel">
@@ -1849,19 +1784,8 @@ kbd {
       <section class="palette-block" aria-labelledby="paletteTitle">
         <div class="palette-head">
           <h3 id="paletteTitle">Palette</h3>
-          <span id="paletteStatus" class="palette-status">Painting with Light green</span>
         </div>
         <div class="palette" id="palette" role="radiogroup" aria-label="Paint colour"></div>
-        <button type="button" class="erase-option" id="eraseOption" aria-pressed="false">
-          <span class="erase-chip" aria-hidden="true">
-            <svg class="icon icon-sm"><use href="#i-eraser"></use></svg>
-          </span>
-          <span class="erase-copy">
-            <strong>None — erase</strong>
-            <small>Removes paint and any cat from the cell.</small>
-          </span>
-          <span class="erase-state" id="eraseState">Off</span>
-        </button>
       </section>
 
       <div class="action-bar">
@@ -1904,7 +1828,6 @@ kbd {
           <div id="diagnostics" class="diagnostics"></div>
           <div class="section-footer">
             <button type="button" class="btn ghost small" id="removeCatsBtn" disabled>Remove all cats</button>
-            <span class="footer-note" id="catHint">No manual cats placed.</span>
           </div>
         </section>
 
@@ -2007,7 +1930,7 @@ const SEARCH_TIME_MS = 3000;
 const MAX_HISTORY = 40;
 const STORAGE_PREFIX = "cat-solver:";
 const THEME_KEY = "cat-solver-theme";
-const ALLOWED_MAX_REGIONS = new Set([0, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25]);
+const AUTOSAVE_KEY = "meowdoku:autosave:v1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -2017,13 +1940,9 @@ const dom = {
   colRuler: $("colRuler"),
   rowRuler: $("rowRuler"),
   palette: $("palette"),
-  paletteStatus: $("paletteStatus"),
-  eraseOption: $("eraseOption"),
-  eraseState: $("eraseState"),
   activeMode: $("activeMode"),
   paintHint: $("paintHint"),
   sizeSelect: $("sizeSelect"),
-  maxRegion: $("maxRegion"),
   puzzleName: $("puzzleName"),
   boardCount: $("boardCount"),
   paintedStat: $("paintedStat"),
@@ -2045,7 +1964,6 @@ const dom = {
   solveBtn: $("solveBtn"),
   clearBtn: $("clearBtn"),
   removeCatsBtn: $("removeCatsBtn"),
-  catHint: $("catHint"),
   themeBtn: $("themeBtn"),
   helpBtn: $("helpBtn"),
   fileBtn: $("fileBtn"),
@@ -2056,7 +1974,6 @@ const dom = {
   exportBtn: $("exportBtn"),
   topStatus: $("topStatus"),
   headerStatus: $("headerStatus"),
-  contextLine: $("contextLine"),
   toastRegion: $("toastRegion"),
   modal: $("modal"),
   modalTitle: $("modalTitle"),
@@ -2138,11 +2055,6 @@ function neighbours(index, diagonal = false) {
 
 function hasBoardContent() {
   return cells.some((value) => value >= 0) || cats.size > 0;
-}
-
-function maxRegionValue() {
-  const value = Number(dom.maxRegion.value);
-  return Number.isFinite(value) ? value : 0;
 }
 
 function prefersReducedMotion() {
@@ -2325,7 +2237,6 @@ function openHelpDialog() {
         <li><strong>One cat per row and column.</strong> With exactly ${n} colours on an ${n} × ${n} board, every row and column is covered.</li>
         <li><strong>No touching.</strong> Cats cannot occupy any of the eight neighbouring cells, including diagonals.</li>
         <li><strong>One connected region per colour.</strong> All cells of a colour must connect orthogonally. Diagonal contact does not connect a region.</li>
-        <li><strong>Region size.</strong> A colour's connected region cannot exceed the configured maximum.</li>
         <li><strong>Complete board.</strong> Every cell must be painted before the solver will search.</li>
       </ul>
     </section>
@@ -2392,15 +2303,6 @@ function updatePaletteState() {
     button.setAttribute("aria-checked", String(checked));
     button.tabIndex = checked ? 0 : -1;
   });
-  dom.eraseOption.setAttribute("aria-pressed", String(mode === "erase"));
-  dom.eraseState.textContent = mode === "erase" ? "Active" : "Off";
-  if (mode === "erase") {
-    dom.paletteStatus.textContent = "Erase mode · none selected";
-  } else if (mode === "cat") {
-    dom.paletteStatus.textContent = `Cat mode · paint colour ${colorName(selected)}`;
-  } else {
-    dom.paletteStatus.textContent = `Painting with ${colorName(selected)}`;
-  }
 }
 
 function focusPaletteColor(index) {
@@ -2610,16 +2512,7 @@ function updateStats() {
   dom.paintedStat.textContent = String(painted);
   dom.colourStat.textContent = String(used);
   dom.catStat.textContent = String(cats.size);
-  dom.boardCount.textContent = `${n * n} cells · ${painted} painted`;
-  dom.catHint.textContent = cats.size
-    ? `${cats.size} manual ${plural(cats.size, "cat")} placed.`
-    : "No manual cats placed.";
-}
-
-function updateContextLine() {
-  const name = dom.puzzleName.value.trim() || "Untitled puzzle";
-  dom.contextLine.textContent = `${n} × ${n} · ${name}`;
-  document.title = name === "Untitled puzzle" ? "Cat Placement Solver" : `${name} — Cat Placement Solver`;
+  dom.boardCount.textContent = `${n * n} cells`;
 }
 
 function updateHeaderStatus() {
@@ -2685,7 +2578,6 @@ function updateActionStates() {
   dom.clearHistoryBtn.disabled = history.length === 0;
   dom.fileBtn.disabled = isSolving;
   dom.sizeSelect.disabled = isSolving;
-  dom.maxRegion.disabled = isSolving;
 
   if (isSolving) closeFileMenu();
 
@@ -3145,19 +3037,6 @@ function analyze() {
       ));
       cellsList.forEach((index) => conflicts.add(index));
     }
-    const limit = maxRegionValue();
-    if (limit > 0) {
-      for (const group of groups) {
-        if (group.cells.length > limit) {
-          errors.push(makeIssue(
-            `${colorName(color)} has a region of ${group.cells.length} cells, exceeding the configured limit of ${limit}.`,
-            group.cells,
-            "error"
-          ));
-          group.cells.forEach((index) => conflicts.add(index));
-        }
-      }
-    }
   }
 
   const complete = unpaintedIndices.length === 0;
@@ -3329,7 +3208,6 @@ function refreshBoardAndDiagnostics() {
   renderDiagnostics(analysis);
   updateBoardCells();
   updateStats();
-  updateContextLine();
   updateHeaderStatus();
   updateActionStates();
 }
@@ -3508,6 +3386,7 @@ function setSolverBlocked(kind, title, message, historyMessage) {
 
 function solve() {
   if (isSolving) return;
+  autosaveBoard();
   const analysis = analyze();
   lastAnalysis = analysis;
   renderDiagnostics(analysis);
@@ -3924,15 +3803,6 @@ function validatePuzzleData(input, fallbackName = "Untitled puzzle") {
     }
   }
 
-  let maxRegion = 0;
-  if (input.maxRegion !== undefined && input.maxRegion !== null && input.maxRegion !== "") {
-    const parsedLimit = typeof input.maxRegion === "number" ? input.maxRegion : Number(input.maxRegion);
-    if (!Number.isInteger(parsedLimit) || !ALLOWED_MAX_REGIONS.has(parsedLimit)) {
-      return invalidPuzzle("The max region limit is not one of the values supported by this app.");
-    }
-    maxRegion = parsedLimit;
-  }
-
   let name = fallbackName;
   if (input.name !== undefined && input.name !== null) {
     if (typeof input.name !== "string") return invalidPuzzle("The puzzle name must be text.");
@@ -3977,7 +3847,6 @@ function validatePuzzleData(input, fallbackName = "Untitled puzzle") {
       n: size,
       cells: input.cells.slice(),
       cats,
-      maxRegion,
       name,
       selected,
       mode,
@@ -4004,7 +3873,6 @@ function buildPuzzlePayload({ includeSavedAt = false } = {}) {
     version: 2,
     name,
     n,
-    maxRegion: maxRegionValue(),
     cells: cells.slice(),
     cats: [...cats].sort((a, b) => a - b),
     selected,
@@ -4034,7 +3902,6 @@ function applyPuzzleData(value, { kind = "load", message = "" } = {}) {
 
   dom.puzzleName.value = value.name;
   dom.sizeSelect.value = String(n);
-  dom.maxRegion.value = String(value.maxRegion);
   buildBoard();
   renderMode();
   refreshBoardAndDiagnostics();
@@ -4075,6 +3942,116 @@ function storageFailureMessage(error) {
     return "Browser storage is full. Export a puzzle to keep a copy, free some space, and try again.";
   }
   return "This browser blocked local storage. Check privacy settings and try again. You can still export the puzzle as JSON.";
+}
+
+/* ------------------------------------------------------------------
+   Autosave and startup recovery
+
+   Autosave is a best-effort recovery point written before validation or
+   solving. It is deliberately separate from user-named saves and must
+   never prevent either operation from running.
+   ------------------------------------------------------------------ */
+
+let autosaveFailureReported = false;
+
+function clearAutosave() {
+  try {
+    window.localStorage.removeItem(AUTOSAVE_KEY);
+  } catch (_) {}
+}
+
+function autosaveBoard() {
+  if (!hasBoardContent()) {
+    clearAutosave();
+    return false;
+  }
+
+  const payload = buildPuzzlePayload({ includeSavedAt: true });
+  try {
+    window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(payload));
+    autosaveFailureReported = false;
+    return true;
+  } catch (_) {
+    if (!autosaveFailureReported) {
+      autosaveFailureReported = true;
+      toast("This board could not be autosaved. Validation and solving will continue.", "warning", 5600);
+    }
+    return false;
+  }
+}
+
+function readAutosave() {
+  let raw;
+  try {
+    raw = window.localStorage.getItem(AUTOSAVE_KEY);
+  } catch (_) {
+    return { status: "unavailable" };
+  }
+
+  if (raw === null) return { status: "none" };
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (_) {
+    clearAutosave();
+    return { status: "invalid", error: "The autosaved board is not valid JSON." };
+  }
+
+  const check = validatePuzzleData(parsed, "Recovered puzzle");
+  if (!check.ok) {
+    clearAutosave();
+    return { status: "invalid", error: check.error };
+  }
+
+  const value = check.value;
+  const empty = !value.cells.some((cell) => cell >= 0) && value.cats.length === 0;
+  if (empty) {
+    clearAutosave();
+    return { status: "empty" };
+  }
+  return { status: "ok", value };
+}
+
+async function offerAutosaveRecovery() {
+  const result = readAutosave();
+  if (result.status === "invalid") {
+    toast("The previous autosave was invalid and has been discarded.", "warning", 5200);
+    return;
+  }
+  if (result.status !== "ok") return;
+
+  const value = result.value;
+  const painted = value.cells.reduce((total, cell) => total + (cell >= 0 ? 1 : 0), 0);
+  const body = document.createElement("div");
+  const lead = document.createElement("p");
+  lead.className = "confirm-message";
+  lead.textContent = "A board was autosaved before its last validation or solve. Restore it, or start with a fresh board.";
+  const meta = document.createElement("p");
+  meta.className = "dialog-note";
+  meta.textContent = `“${value.name}” · ${value.n} × ${value.n} · ${painted} painted · ${value.cats.length} ${plural(value.cats.length, "cat")}${value.savedAt ? ` · ${formatDate(value.savedAt)}` : ""}`;
+  body.append(lead, meta);
+
+  const fresh = makeDialogButton("Start fresh", { variant: "ghost", value: false });
+  const restore = makeDialogButton("Restore board", { variant: "primary", value: true, autofocus: true });
+  const choice = await openDialog({
+    title: "Recover your last board?",
+    subtitle: "Autosaved before validation or solving",
+    body,
+    actions: [fresh, restore],
+    initialFocus: restore
+  });
+
+  if (choice === true) {
+    applyPuzzleData(value, {
+      kind: "load",
+      message: `Restored the autosaved “${value.name}”.`
+    });
+    toast("Restored the autosaved board.", "success");
+  } else if (choice === false) {
+    clearAutosave();
+    toast("Started fresh. The autosave was discarded.", "info", 3000);
+  }
 }
 
 function readSavedPuzzles() {
@@ -4420,11 +4397,11 @@ async function removeAllCats() {
 
 function validateBoard() {
   if (isSolving) return;
+  autosaveBoard();
   const analysis = analyze();
   renderDiagnostics(analysis);
   updateBoardCells();
   updateStats();
-  updateContextLine();
   updateHeaderStatus();
   updateActionStates();
 
@@ -4486,24 +4463,6 @@ async function handleSizeChange() {
 
   resetToSize(next);
   toast(`Started a ${next} × ${next} board.`, "info");
-}
-
-function handleMaxRegionChange() {
-  if (isSolving) return;
-  let value = Number(dom.maxRegion.value);
-  if (!ALLOWED_MAX_REGIONS.has(value)) {
-    value = 0;
-    dom.maxRegion.value = "0";
-  }
-  const hadDerived = solver !== null || lastApplied !== null;
-  clearDerivedForBoardChange();
-  refreshBoardAndDiagnostics();
-  addHistory("board", value > 0 ? `Set the maximum region size to ${value} cells.` : "Removed the maximum region size limit.");
-  toast(hadDerived ? "Region limit updated. Solver results were cleared." : "Region limit updated.", "info", 2600);
-}
-
-function handleNameInput() {
-  updateContextLine();
 }
 
 
@@ -4712,10 +4671,6 @@ function bindEvents() {
     button.addEventListener("click", () => setMode(button.dataset.mode));
   });
 
-  dom.eraseOption.addEventListener("click", () => {
-    setMode(mode === "erase" ? "paint" : "erase");
-  });
-
   dom.candidateToggle.addEventListener("change", () => {
     showCandidates = dom.candidateToggle.checked;
     updateBoardCells();
@@ -4727,8 +4682,6 @@ function bindEvents() {
 
   dom.helpBtn.addEventListener("click", openHelpDialog);
   dom.sizeSelect.addEventListener("change", handleSizeChange);
-  dom.maxRegion.addEventListener("change", handleMaxRegionChange);
-  dom.puzzleName.addEventListener("input", handleNameInput);
 
   dom.validateBtn.addEventListener("click", validateBoard);
   dom.clearBtn.addEventListener("click", clearBoard);
@@ -4771,6 +4724,7 @@ function init() {
   renderHistory();
   updateActionStates();
   addHistory("board", "Created an 8 × 8 board.");
+  offerAutosaveRecovery();
 }
 
 init();
