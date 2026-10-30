@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A local-first cat placement puzzle workbench: paint a grid, enforce one cat per colour, row, and column, and search for every valid arrangement.">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" type="image/svg+xml" href="assets/branding/app-icon.svg">
+<meta name="theme-color" id="themeColor" content="#0b1016">
+<title>Meowdoku Solver</title>
+<link rel="stylesheet" href="css/style.css">
+<!-- Apply the persisted theme before first paint to avoid a theme flash. -->
+<script>
+(() => {
+  try {
+    const stored = localStorage.getItem("cat-solver-theme");
+    if (stored === "light" || stored === "dark") document.documentElement.dataset.theme = stored;
+  } catch (_) {}
+})();
+</script>
+</head>
+
+<body>
+<svg class="svg-sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-cat" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M4.2 10.2V4.7c0-.65.75-.98 1.25-.55l4.15 3.5h4.8l4.15-3.5c.5-.43 1.25-.1 1.25.55v5.5a8 8 0 0 1-15.6 0Z"/>
+    <circle cx="9.1" cy="10.5" r="1.25" fill="var(--cat-eye, #fff)"/>
+    <circle cx="14.9" cy="10.5" r="1.25" fill="var(--cat-eye, #fff)"/>
+    <path d="M10.5 14.2h3" fill="none" stroke="var(--cat-eye, #fff)" stroke-width="1.2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-brush" viewBox="0 0 24 24">
+    <path d="m14 4 6 6-9 9-6-6 9-9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="m5 13-1 6 6-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24">
+    <path d="m4 16 8-8 6 6-8 8H6l-2-2v-4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M9 21h11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24">
+    <path d="M9 7 4 12l5 5M4 12h9a7 7 0 0 1 7 7v1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24">
+    <path d="m15 7 5 5-5 5M20 12h-9a7 7 0 0 0-7 7v1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-check" viewBox="0 0 24 24">
+    <path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24">
+    <path d="M12 4 21 20H3L12 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M12 9v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="12" cy="17.2" r="1" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-info" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M12 11v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="12" cy="7.6" r="1" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-search" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-save" viewBox="0 0 24 24">
+    <path d="M5 4h11l3 3v13H5V4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M8 4v6h8V4M8 20v-6h8v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24">
+    <path d="M3 7h7l2 2h9v10H3V7Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-download" viewBox="0 0 24 24">
+    <path d="M12 3v11M7 10l5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24">
+    <path d="M12 20V9M7 13l5-5 5 5M4 4h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24">
+    <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-help" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .7-1.5 1.2-1.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="12" cy="17" r="1" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24">
+    <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-close" viewBox="0 0 24 24">
+    <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24">
+    <path d="M4 12h16M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-history" viewBox="0 0 24 24">
+    <path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-file" viewBox="0 0 24 24">
+    <path d="M6 3h8l4 4v14H6V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M14 3v5h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-target" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24">
+    <rect x="4" y="4" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <rect x="14" y="4" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <rect x="4" y="14" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <rect x="14" y="14" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  </symbol>
+</svg>
+
+<a class="skip-link" href="#main">Skip to puzzle workspace</a>
+
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand">
+      <img class="brand-mark" src="assets/branding/app-icon.svg" alt="" width="42" height="42">
+      <div class="brand-copy">
+        <h1>Meowdoku Solver</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="status-pill" id="headerStatus" data-tone="neutral" title="Current board state" aria-live="polite" aria-atomic="true">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="topStatus">Empty board</span>
+      </div>
+      <div class="header-divider" aria-hidden="true"></div>
+      <button type="button" class="icon-btn" id="themeBtn" aria-label="Switch to light theme" title="Switch to light theme">
+        <svg class="icon" aria-hidden="true"><use href="#i-sun"></use></svg>
+      </button>
+      <button type="button" class="icon-btn" id="helpBtn" aria-label="Rules and solver logic" title="Rules and solver logic">
+        <svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg>
+      </button>
+      <div class="file-menu-wrap">
+        <button type="button" class="btn file-btn" id="fileBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="fileMenu">
+          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"></use></svg>
+          <span>File</span>
+          <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
+        </button>
+        <div class="file-menu" id="fileMenu" role="menu" aria-labelledby="fileBtn" hidden>
+          <button type="button" class="menu-item" id="saveBtn" role="menuitem" tabindex="-1">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-save"></use></svg>
+            <span>Save puzzle</span>
+          </button>
+          <button type="button" class="menu-item" id="loadBtn" role="menuitem" tabindex="-1">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"></use></svg>
+            <span>Load saved…</span>
+          </button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" class="menu-item" id="importBtn" role="menuitem" tabindex="-1">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-upload"></use></svg>
+            <span>Import JSON…</span>
+          </button>
+          <button type="button" class="menu-item" id="exportBtn" role="menuitem" tabindex="-1">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-download"></use></svg>
+            <span>Export JSON</span>
+          </button>
+          <p class="menu-note">Saved puzzles stay in this browser.</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace" id="main">
+    <section class="stage" aria-labelledby="canvasTitle">
+      <div class="stage-top">
+        <div class="section-heading">
+          <h2 id="canvasTitle">Puzzle canvas</h2>
+          <p>Paint every cell, then let the solver verify the arrangement.</p>
+        </div>
+        <button type="button" class="btn ghost danger-text" id="clearBtn" disabled>
+          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-close"></use></svg>
+          <span>Clear board</span>
+        </button>
+      </div>
+
+      <div class="setup-bar">
+        <div class="field field-name">
+          <label for="puzzleName">Puzzle name</label>
+          <input id="puzzleName" type="text" maxlength="50" autocomplete="off" spellcheck="false" placeholder="Untitled puzzle">
+        </div>
+        <div class="field">
+          <label for="sizeSelect">Board size</label>
+          <select id="sizeSelect">
+            <option value="4">4 × 4</option>
+            <option value="5">5 × 5</option>
+            <option value="6">6 × 6</option>
+            <option value="7">7 × 7</option>
+            <option value="8" selected>8 × 8</option>
+            <option value="9">9 × 9</option>
+            <option value="10">10 × 10</option>
+          </select>
+        </div>
+        <div class="field field-mode">
+          <span class="field-label" id="modeLabel">Paint action</span>
+          <div class="segmented" role="group" aria-labelledby="modeLabel">
+            <button type="button" data-mode="paint" aria-pressed="true">
+              <svg class="icon" aria-hidden="true"><use href="#i-brush"></use></svg>
+              <span>Paint</span>
+            </button>
+            <button type="button" data-mode="erase" aria-pressed="false">
+              <svg class="icon" aria-hidden="true"><use href="#i-eraser"></use></svg>
+              <span>Erase</span>
+            </button>
+            <button type="button" data-mode="cat" aria-pressed="false">
+              <svg class="icon" aria-hidden="true"><use href="#i-cat"></use></svg>
+              <span>Cat</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="rules-line">One cat per colour, row, and column · cats never touch · each colour forms one connected region.</p>
+
+      <div class="board-area">
+        <div class="board-toolbar">
+          <div class="mode-indicator" id="activeMode"></div>
+          <p class="board-hint" id="paintHint"></p>
+        </div>
+        <div class="board-frame">
+          <div class="board-shell" id="boardShell">
+            <div class="ruler-corner" aria-hidden="true"></div>
+            <div class="col-ruler" id="colRuler" aria-hidden="true"></div>
+            <div class="row-ruler" id="rowRuler" aria-hidden="true"></div>
+            <div class="board" id="board" role="grid" aria-label="Puzzle grid" aria-describedby="boardInstructions" aria-rowcount="8" aria-colcount="8"></div>
+          </div>
+        </div>
+        <p class="sr-only" id="boardInstructions">Use the arrow keys to move between cells. Press Enter or Space to apply the current mode. Row and column coordinates start at 1.</p>
+        <div class="board-caption">
+          <span id="boardCount">64 cells · 0 painted</span>
+          <div class="board-legend" aria-label="Board legend">
+            <span><svg class="icon" aria-hidden="true"><use href="#i-cat"></use></svg> Cat</span>
+            <span><i class="legend-dot" aria-hidden="true"></i> Candidate</span>
+            <span><i class="legend-conflict" aria-hidden="true">!</i> Conflict</span>
+          </div>
+        </div>
+      </div>
+
+      <section class="palette-block" aria-labelledby="paletteTitle">
+        <div class="palette-head">
+          <h3 id="paletteTitle">Palette</h3>
+        </div>
+        <div class="palette" id="palette" role="radiogroup" aria-label="Paint colour"></div>
+      </section>
+
+      <div class="action-bar">
+        <div class="secondary-actions">
+          <button type="button" class="btn small" id="undoBtn" disabled title="Undo (Ctrl/Cmd + Z)">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-undo"></use></svg>
+            <span>Undo</span>
+          </button>
+          <button type="button" class="btn small" id="redoBtn" disabled title="Redo (Ctrl/Cmd + Shift + Z)">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-redo"></use></svg>
+            <span>Redo</span>
+          </button>
+          <button type="button" class="btn small" id="validateBtn">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"></use></svg>
+            <span>Validate</span>
+          </button>
+        </div>
+        <button type="button" class="btn primary solve-btn" id="solveBtn">
+          <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <span>Solve puzzle</span>
+        </button>
+      </div>
+    </section>
+
+    <aside class="sidebar" aria-label="Solver workspace">
+      <div class="sidebar-surface">
+        <section class="sidebar-section" aria-labelledby="diagnosticsTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="diagnosticsTitle">Board diagnostics</h2>
+              <p>Live structural checks</p>
+            </div>
+            <span class="badge" id="diagBadge" data-tone="neutral">Empty</span>
+          </div>
+          <div class="metrics">
+            <div class="metric"><strong id="paintedStat">0</strong><span>Painted cells</span></div>
+            <div class="metric"><strong id="colourStat">0</strong><span>Colours used</span></div>
+            <div class="metric"><strong id="catStat">0</strong><span>Manual cats</span></div>
+          </div>
+          <div id="diagnostics" class="diagnostics"></div>
+          <div class="section-footer">
+            <button type="button" class="btn ghost small" id="removeCatsBtn" disabled>Remove all cats</button>
+          </div>
+        </section>
+
+        <section class="sidebar-section" aria-labelledby="deductionTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="deductionTitle">Next deduction</h2>
+              <p>Only placements common to every solution</p>
+            </div>
+          </div>
+          <div id="nextResult" class="next-result"></div>
+          <div class="deduction-actions">
+            <button type="button" class="btn small" id="nextBtn" disabled>
+              <span>Next step</span>
+              <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg>
+            </button>
+            <button type="button" class="btn primary small" id="applyStepBtn" disabled>Place this cat</button>
+          </div>
+        </section>
+
+        <section class="sidebar-section" aria-labelledby="candidatesTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="candidatesTitle">Candidate locations</h2>
+              <p id="candidateSubtitle">Solve to calculate</p>
+            </div>
+            <label class="switch" for="candidateToggle">
+              <input type="checkbox" id="candidateToggle" checked disabled>
+              <span>Show on grid</span>
+            </label>
+          </div>
+          <div id="candidateResults" class="candidate-results"></div>
+        </section>
+
+        <section class="sidebar-section" aria-labelledby="historyTitle">
+          <div class="section-head">
+            <div>
+              <h2 id="historyTitle">Deduction history</h2>
+              <p>Board edits and solver activity</p>
+            </div>
+            <button type="button" class="btn ghost small" id="clearHistoryBtn" disabled>Clear</button>
+          </div>
+          <div id="history" class="history-list" role="list" aria-label="Most recent activity first" tabindex="0"></div>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="app-footer">
+    <span>Local-first · Saved puzzles stay in this browser.</span>
+    <span>Solver cap: 20,000 solutions / 3 s · capped results are provisional.</span>
+  </footer>
+</div>
+
+<div id="toastRegion" class="toast-region"></div>
+
+<dialog id="modal" class="modal" aria-labelledby="modalTitle">
+  <div class="modal-shell">
+    <div class="modal-head">
+      <div>
+        <h2 id="modalTitle"></h2>
+        <p class="modal-subtitle" id="modalSubtitle" hidden></p>
+      </div>
+      <button type="button" class="icon-btn" id="modalClose" aria-label="Close dialog">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody" tabindex="0"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</dialog>
+
+<input type="file" id="importInput" accept=".json,application/json" hidden>
+
+<script src="js/app.js" defer></script>
+</body>
+</html>
