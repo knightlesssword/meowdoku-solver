@@ -106,9 +106,47 @@ Committed as `db10496` (`refactor(app): split html css and javascript`).
 | Blocked storage | `localStorage` getter throws, app opened via `file://` | App loaded; theme toggle worked; Validate completed with a non-blocking autosave warning |
 | Browser console | Headless Chromium sessions | No page errors or console errors |
 
+## Phase 3 - Security, solver, UI, and accessibility audit
+
+Source fixes committed as `a225358` and `0a02580`. Full findings are in `docs/QUALITY_AUDIT.md`; commands, outcomes, and gaps are in `docs/TESTING.md`.
+
+### Findings fixed
+
+1. **Stale autosave after a failed write (`a225358`).** `autosaveBoard()` previously left an older `meowdoku:autosave:v1` value in place when the replacement write failed. A later reload could therefore offer recovery data that predated the failed validation or solve. The catch path now clears the old key before showing the existing one-time, non-blocking warning.
+2. **History panel was not keyboard-accessible (`0a02580`).** Once populated, `#history` became a scroll container with no focus target and failed axe's `scrollable-region-focusable` rule. It now has `tabindex="0"` and an inset `:focus-visible` outline; Page Down scrolls it.
+3. **Narrow dialog body was not keyboard-accessible (`0a02580`).** The shared `#modalBody` could overflow in the help dialog at 390 px and also failed `scrollable-region-focusable`. It now has the same tab stop and focus treatment; dialog focus containment and Escape handling still pass.
+
+No Critical or High finding remains in the reviewed scope. Accepted items (restore keeps the autosave key, repeated solution-count contexts, no CSP, unencrypted local storage, bounded main-thread search) and deferred items (Phase 6 workflow review, real screen reader, Firefox/Safari, performance profiling) are recorded in `docs/QUALITY_AUDIT.md`.
+
+### Verification evidence
+
+| Scenario | Evidence | Result |
+|---|---|---|
+| Autosave write failure | Seeded older autosave, forced `QuotaExceededError`, Validate | Old key removed; validation completed; warning once; reload had no recovery prompt |
+| History keyboard access | 20 activity entries, focus `#history`, Page Down | Overflowed list focused; 2 px outline; `scrollTop` 0 -> 245 px |
+| Dialog body keyboard access | Help dialog at 390 x 600, focus `#modalBody`, Page Down | Body focused; 2 px outline; `scrollTop` 0 -> 356 px; Escape closed dialog |
+| Axe populated/dialog matrix | 18 scans: board + toast, help, load, clear confirm; dark/light; 1281/768/390 px | 0 violations after fixes (8 scans had failed before) |
+| Axe empty board | 4 scans, dark/light at 1281/390 px | 0 violations |
+| Keyboard and focus | Skip link, palette, board, undo/redo, file menu, dialogs, confirm, theme, reduced motion | 13 / 13 pass |
+| Security and persistence | 14 invalid payloads, malformed/oversized files, XSS name, export name/URL, corrupt saves, invalid autosave, blocked storage | 10 / 10 pass; board unchanged on every rejection |
+| Solver matrix | Boards 4-10, no-solution fixture, 10x10 cap, mobile layout | 11 / 11 pass; no forced claims at the cap |
+| Inconclusive search | 10x10 hard fixture with test-only patched clock | `Search inconclusive`; no candidates or forced steps |
+| Visible controls | Candidate toggle, next/apply forced step, remove cats, clear history, resize, clear board | 10 / 10 pass |
+| Phase 2 regressions | Core, autosave, `file://`, blocked storage | 19 / 19, 9 / 9, pass, pass |
+| Static checks | `node --check`, `git diff --check`, ID/handler/external-reference scan | Pass; 80 unique IDs; no inline handlers or external references |
+
+### Not yet covered (scheduled later)
+
+- Figma branding integration and final visual review (Phase 4).
+- User-facing documentation, including storage and export guidance (Phase 5).
+- GitHub Actions permissions, action pinning, Pages deployment, and live URL verification (Phase 6).
+
 ## Commit log
 
 - `1d1c184` chore(project): capture implementation inputs and phase 0 baseline
 - `4da699d` fix(app): apply product corrections and autosave recovery
 - `d85019c` docs(project): record phase 0 and phase 1 verification
 - `db10496` refactor(app): split html css and javascript
+- `dfa3b26` docs(project): record phase 2 extraction verification
+- `a225358` fix(app): clear stale autosave on write failure
+- `0a02580` fix(a11y): make scrollable panels keyboard accessible
