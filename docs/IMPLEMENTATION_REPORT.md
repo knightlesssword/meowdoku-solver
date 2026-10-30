@@ -62,10 +62,53 @@ Committed as `1d1c184` (`chore(project): capture implementation inputs and phase
 - Full solver fixture matrix and no-solution case (Phase 3).
 - Screen-reader manual pass and full accessibility audit (Phase 3).
 - Light-theme visual review and final branding integration (Phase 4).
-- Local `file://` opening and GitHub Pages deployment (Phases 2 and 6).
+- GitHub Pages deployment (Phase 6).
 - Final documentation and release workflow (Phases 5 and 6).
+
+## Phase 2 - Split HTML, CSS, and JavaScript
+
+Committed as `db10496` (`refactor(app): split html css and javascript`).
+
+### Implemented
+
+- `index.html` (379 lines) now holds the document shell, metadata, favicon, SVG sprite, skip link, workspace, dialogs, and containers. It links `css/style.css` relatively and loads `js/app.js` with `defer`.
+- `css/style.css` (1,532 lines) holds the full stylesheet: tokens, dark/light themes, layout, components, states, responsive rules, and reduced motion. Section comments were preserved.
+- `js/app.js` (2,920 lines) holds all application logic in one IIFE with the same startup order and selectors. Comments were added for the row-major coordinate model, stable colour indices, orthogonal region connectivity versus eight-way cat adjacency, connected components, validation, MRV backtracking, candidate accumulation, forced placements, search caps, undo snapshots, import validation, named saves, autosave lifecycle, and initialization.
+- The only remaining inline script is the pre-paint theme bootstrap. It reads `cat-solver-theme` inside `try/catch` and sets `data-theme` before first paint to avoid a theme flash; it contains no application logic.
+- The old single-file source `cat-placement-solver (1).html` was removed in the same commit.
+- No npm install, manifest, bundler, framework, backend, build step, or runtime dependency was added. The temporary Playwright harness lives outside the repository.
+
+### Verification evidence
+
+| Scenario | Evidence | Result |
+|---|---|---|
+| DOM parity | IDs extracted from the Phase 1 source and `index.html` | 80 / 80 IDs; no missing or added IDs |
+| Static body parity | `<body>` markup before the application script compared byte-for-byte | Identical (18,383 characters) |
+| JavaScript inventory | Top-level `function` / `const` / `let` declarations compared | 150 / 150; no missing or added declarations |
+| CSS inventory | Rule headers compared after the extracted header | 341 / 341; no missing or added rules |
+| Embedded assets | Search for `<style>`, max-region remnants, and inline handlers | No application `<style>` block, no `maxRegion`, no `on*=` attributes |
+| Relative links | `index.html` source and browser resource loading | `css/style.css` and `js/app.js` resolve; script is deferred |
+| Syntax | `node --check js/app.js` | Pass |
+| Palette regression | Viewports 1281, 1000, 900, 800, 720, 600, 430, 390 px | 6 / 4 / 3 columns; equal widths and heights; no label or page overflow |
+| Paint and erase | Desktop pointer drag across cells 0-2 | 3 cells painted; erase drag removed paint; Paint mode retained colour 2 |
+| Legacy region | Version 1 payload, 16-cell colour block, `maxRegion: 10` | Loaded with 16 painted cells; no region-size enforcement or field |
+| Disconnected region | Colour 0 at r1c1 and r2c2 | `2 separate orthogonal regions`; 2 conflict cells; 1 violation |
+| Solver regression | 4x4 column-stripe fixture | 2 solutions, 8 candidates, no forced claim; with 4 manual cats, unique solution |
+| Named saves | Save under `Phase2 Save`, import another board, load saved entry | Save payload version 2 without `maxRegion`; load restored 16 painted cells and 4 cats |
+| Export | Download inspected | Version 2 keys only; no `maxRegion` |
+| Autosave on Validate | Two painted cells, click Validate | Version 2 autosave with 2 painted cells; validation completed |
+| Autosave on Solve early return | Incomplete board, click Solve | Timestamp advanced; status `Board incomplete` |
+| Empty-board Solve | Import empty board, click Solve | Autosave removed; status `Nothing to solve` |
+| Recovery lifecycle | Reload with valid autosave; Restore then reload; Start fresh | Restore recreated 2 painted cells; Start fresh removed the key and cleared the board |
+| Corrupt autosave | Invalid JSON in the key, reload | No modal; key removed; discard warning shown |
+| Storage write failure | `Storage.prototype.setItem` throws quota error, Validate | Validation completed; warning toast; Validate remained enabled |
+| Local file opening | `file:///D:/blep/FSProjects/cat-puzzle-solver/index.html` | Stylesheet and script loaded; 12 palette buttons; 64 cells; paint and Validate worked |
+| Blocked storage | `localStorage` getter throws, app opened via `file://` | App loaded; theme toggle worked; Validate completed with a non-blocking autosave warning |
+| Browser console | Headless Chromium sessions | No page errors or console errors |
 
 ## Commit log
 
 - `1d1c184` chore(project): capture implementation inputs and phase 0 baseline
 - `4da699d` fix(app): apply product corrections and autosave recovery
+- `d85019c` docs(project): record phase 0 and phase 1 verification
+- `db10496` refactor(app): split html css and javascript
