@@ -1,0 +1,95 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Validate runtime files
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in index.html css/style.css js/app.js assets/branding/app-icon.svg; do
+            test -f "$file" || { echo "Missing required file: $file"; exit 1; }
+          done
+          node --check js/app.js
+
+      - name: Stage static artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          SITE_DIR="$RUNNER_TEMP/site"
+          rm -rf "$SITE_DIR"
+          mkdir -p "$SITE_DIR/css" "$SITE_DIR/js" "$SITE_DIR/assets/branding"
+          cp index.html "$SITE_DIR/"
+          cp css/style.css "$SITE_DIR/css/"
+          cp js/app.js "$SITE_DIR/js/"
+          cp assets/branding/app-icon.svg "$SITE_DIR/assets/branding/"
+          touch "$SITE_DIR/.nojekyll"
+          find "$SITE_DIR" -type f -printf '%P\n' | sort
+          test "$(find "$SITE_DIR" -type f | wc -l)" -eq 5
+
+      - name: Publish gh-pages
+        shell: bash
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          DEPLOY_DIR="$RUNNER_TEMP/deploy"
+          rm -rf "$DEPLOY_DIR"
+          git worktree prune
+
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git fetch --no-tags origin gh-pages
+            git worktree add --detach "$DEPLOY_DIR" origin/gh-pages
+            cd "$DEPLOY_DIR"
+          else
+            git worktree add --detach "$DEPLOY_DIR" HEAD
+            cd "$DEPLOY_DIR"
+            git checkout --orphan gh-pages
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R "$RUNNER_TEMP/site/." .
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No deployment changes for ${DEPLOY_SHA}."
+            {
+              echo "### GitHub Pages"
+              echo "No deployment changes for ${DEPLOY_SHA}."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          git commit -m "deploy: publish ${DEPLOY_SHA}"
+          git push origin HEAD:gh-pages
+
+          {
+            echo "### GitHub Pages"
+            echo "Published ${DEPLOY_SHA} to gh-pages."
+            echo "Target: https://knightlesssword.github.io/meowdoku-solver/"
+          } >> "$GITHUB_STEP_SUMMARY"
