@@ -1,0 +1,29 @@
+# The application itself has no build step and no package manager.
+# These entries cover local tooling, test output, and operating-system noise.
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Temporary local browser/accessibility harnesses and reports
+node_modules/
+.tmp-test/
+playwright-report/
+test-results/
+coverage/
+*.log
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python helper server caches
+__pycache__/
