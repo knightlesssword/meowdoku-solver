@@ -314,6 +314,9 @@ The user-facing documents were checked against `js/app.js` and `index.html` for:
 | `/js/app.js` | 200 | `application/javascript; charset=utf-8` |
 | `/assets/branding/app-icon.svg` | 200 | `image/svg+xml` |
 | `/.nojekyll` | 200 | `application/octet-stream` |
+| `/docs/` | 404 | Not deployed |
+| `/README.md` | 404 | Not deployed |
+| `/.github/` | 404 | Not deployed |
 
 ### Live browser smoke tests
 

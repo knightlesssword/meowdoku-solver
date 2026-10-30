@@ -16,6 +16,7 @@
 | GitHub Pages settings | Source `gh-pages`, path `/`, build type `legacy`; Pages build `1327302791` completed with status `built`. |
 | Public URL | HTTP 200 at <https://knightlesssword.github.io/meowdoku-solver/>. |
 | Runtime assets | `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, and `.nojekyll` all returned HTTP 200 with the expected content types. |
+| Artifact isolation | `/docs/`, `/README.md`, and `/.github/` returned HTTP 404; only the five intended files are deployed. |
 | Smoke test on the public site | Passed: import, unique-solution solve, candidate overlay, forced-step controls, theme switch, mobile width, named save/load, export, and help dialog. No page or console errors; all five requests were same-origin. |
 
 The manual `workflow_dispatch` run was intentionally a no-op because the runtime artifact had not changed. It fetched the existing `gh-pages` branch and exited without adding a commit, confirming the update path does not rewrite history when there is nothing to publish.
