@@ -1,1908 +1,11 @@
-<!doctype html>
-<html lang="en" data-theme="dark">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A local-first cat placement puzzle workbench: paint a grid, enforce one cat per colour, row, and column, and search for every valid arrangement.">
-<meta name="color-scheme" content="dark light">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23e6b35b'/%3E%3Cpath d='M17 34V19l8 6h14l8-6v15a15 15 0 0 1-30 0Z' fill='%23241a07'/%3E%3Ccircle cx='27' cy='34' r='2' fill='%23e6b35b'/%3E%3Ccircle cx='37' cy='34' r='2' fill='%23e6b35b'/%3E%3C/svg%3E">
-<meta name="theme-color" id="themeColor" content="#0b1016">
-<title>Meowdoku Solver</title>
-<script>
-(() => {
-  try {
-    const stored = localStorage.getItem("cat-solver-theme");
-    if (stored === "light" || stored === "dark") document.documentElement.dataset.theme = stored;
-  } catch (_) {}
-})();
-</script>
-<style>
-:root,
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
-  --bg: #0b1016;
-  --bg-2: #0e141c;
-  --surface: #121a23;
-  --surface-2: #17212c;
-  --surface-3: #1d2936;
-  --surface-inset: #0e151d;
-  --border: #26313d;
-  --border-strong: #374656;
-  --text: #e9eff6;
-  --text-2: #c0cbd8;
-  --muted: #8b98a8;
-  --faint: #7a8795;
-  --accent: #e6b35b;
-  --accent-hover: #f0c371;
-  --accent-ink: #241a07;
-  --accent-text: #ecc375;
-  --accent-soft: rgba(230, 179, 91, 0.12);
-  --accent-line: rgba(230, 179, 91, 0.38);
-  --secondary: #78c2ff;
-  --secondary-text: #8dcbff;
-  --secondary-soft: rgba(120, 194, 255, 0.12);
-  --focus: #8dcbff;
-  --focus-soft: rgba(141, 203, 255, 0.2);
-  --success: #54cf9b;
-  --success-text: #7be0b4;
-  --success-soft: rgba(84, 207, 155, 0.12);
-  --danger: #ff7b84;
-  --danger-text: #ff9ba2;
-  --danger-ink: #2a0b0f;
-  --danger-soft: rgba(255, 123, 132, 0.12);
-  --warning: #e6b35b;
-  --warning-text: #f0c77e;
-  --warning-soft: rgba(230, 179, 91, 0.12);
-  --cell-empty: #1a2430;
-  --cell-empty-hover: #202d3b;
-  --cell-edge: rgba(255, 255, 255, 0.055);
-  --cell-shadow: rgba(0, 0, 0, 0.18);
-  --backdrop: rgba(2, 6, 10, 0.68);
-  --shadow: 0 20px 48px rgba(0, 0, 0, 0.34);
-  --shadow-menu: 0 18px 40px rgba(0, 0, 0, 0.46);
-  --shadow-sm: 0 6px 14px rgba(0, 0, 0, 0.2);
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --grid-gap: clamp(3px, 0.55vw, 6px);
-  --ruler-size: 20px;
-  --transition: 140ms ease;
-}
+/* Meowdoku Solver - application logic
+   This file is loaded with defer from index.html and wrapped in an IIFE.
 
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f4f1ea;
-  --bg-2: #eee9df;
-  --surface: #fffdf9;
-  --surface-2: #f7f2e9;
-  --surface-3: #eee8dc;
-  --surface-inset: #f1ece2;
-  --border: #ded6c7;
-  --border-strong: #9a8b75;
-  --text: #20242a;
-  --text-2: #3f4853;
-  --muted: #5a6470;
-  --faint: #626c78;
-  --accent: #c9891b;
-  --accent-hover: #b67910;
-  --accent-ink: #241a07;
-  --accent-text: #8a5a00;
-  --accent-soft: rgba(201, 137, 27, 0.11);
-  --accent-line: rgba(201, 137, 27, 0.4);
-  --secondary: #1c6f9e;
-  --secondary-text: #17628d;
-  --secondary-soft: rgba(28, 111, 158, 0.1);
-  --focus: #0b6fa4;
-  --focus-soft: rgba(11, 111, 164, 0.16);
-  --success: #147a52;
-  --success-text: #116b48;
-  --success-soft: rgba(20, 122, 82, 0.1);
-  --danger: #b42336;
-  --danger-text: #a01f31;
-  --danger-ink: #ffffff;
-  --danger-soft: rgba(180, 35, 54, 0.09);
-  --warning: #8a5a00;
-  --warning-text: #7b5000;
-  --warning-soft: rgba(201, 137, 27, 0.1);
-  --cell-empty: #f1ece2;
-  --cell-empty-hover: #e8e1d4;
-  --cell-edge: rgba(40, 32, 18, 0.09);
-  --cell-shadow: rgba(40, 32, 18, 0.07);
-  --backdrop: rgba(42, 33, 18, 0.35);
-  --shadow: 0 18px 40px rgba(50, 40, 22, 0.1);
-  --shadow-menu: 0 16px 36px rgba(50, 40, 22, 0.16);
-  --shadow-sm: 0 4px 10px rgba(50, 40, 22, 0.06);
-}
+   Board state is row-major: cells[r * n + c] is a colour index or -1.
+   Manual cats are board cell indices in the same coordinate model.
+   Colours are persisted by their stable index in COLORS, never by hex value,
+   so saved puzzles stay readable when theme colours change. */
 
-*,
-*::before,
-*::after { box-sizing: border-box; }
-
-html { min-width: 0; -webkit-text-size-adjust: 100%; }
-
-body {
-  margin: 0;
-  min-height: 100dvh;
-  overflow-x: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.5;
-  letter-spacing: 0.003em;
-}
-
-body.modal-open { overflow: hidden; }
-
-button,
-input,
-select { font: inherit; }
-
-button {
-  color: inherit;
-  cursor: pointer;
-}
-
-button:disabled,
-input:disabled,
-select:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-svg { display: block; }
-[hidden] { display: none !important; }
-
-::selection { background: var(--accent-soft); color: var(--text); }
-
-:where(button, input, select, a):focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.skip-link {
-  position: fixed;
-  top: -60px;
-  left: 12px;
-  z-index: 200;
-  padding: 9px 13px;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-weight: 700;
-  text-decoration: none;
-  transition: top var(--transition);
-}
-.skip-link:focus { top: 12px; }
-
-.svg-sprite {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-.icon {
-  width: 18px;
-  height: 18px;
-  flex: none;
-  pointer-events: none;
-}
-.icon-xs { width: 14px; height: 14px; }
-.icon-sm { width: 15px; height: 15px; }
-.icon-lg { width: 22px; height: 22px; }
-
-.app-shell {
-  width: 100%;
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 0 clamp(12px, 2.5vw, 28px);
-}
-
-/* ---------- Header ---------- */
-
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 0 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  flex: none;
-  border-radius: 12px;
-  background: var(--accent);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
-}
-.brand-mark svg { width: 36px; height: 36px; }
-
-.brand-copy { min-width: 0; }
-.brand h1 {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-  font-weight: 720;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.status-dot {
-  width: 7px;
-  height: 7px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--faint);
-}
-.status-pill[data-tone="accent"] .status-dot { background: var(--accent); }
-.status-pill[data-tone="success"] .status-dot { background: var(--success); }
-.status-pill[data-tone="warning"] .status-dot { background: var(--warning); }
-.status-pill[data-tone="danger"] .status-dot { background: var(--danger); }
-.status-pill[data-tone="success"] { color: var(--success-text); }
-.status-pill[data-tone="danger"] { color: var(--danger-text); }
-.status-pill[data-tone="warning"] { color: var(--warning-text); }
-
-.header-divider {
-  width: 1px;
-  height: 24px;
-  margin: 0 3px;
-  background: var(--border);
-}
-
-/* ---------- Buttons ---------- */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 12.5px;
-  font-weight: 640;
-  line-height: 1;
-  white-space: nowrap;
-  transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
-}
-.btn:hover:not(:disabled) {
-  border-color: var(--border-strong);
-  background: var(--surface-3);
-}
-.btn:active:not(:disabled) { transform: translateY(1px); }
-.btn.primary {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-.btn.primary:hover:not(:disabled) {
-  border-color: var(--accent-hover);
-  background: var(--accent-hover);
-}
-.btn.ghost {
-  border-color: transparent;
-  background: transparent;
-  color: var(--text-2);
-}
-.btn.ghost:hover:not(:disabled) {
-  border-color: var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-}
-.btn.danger-text { color: var(--danger-text); }
-.btn.danger-text:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
-  background: var(--danger-soft);
-  color: var(--danger-text);
-}
-.btn.danger-solid {
-  border-color: var(--danger);
-  background: var(--danger);
-  color: var(--danger-ink);
-}
-.btn.danger-solid:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--danger) 82%, #000);
-  background: color-mix(in srgb, var(--danger) 82%, #000);
-  color: var(--danger-ink);
-}
-.btn.small {
-  min-height: 30px;
-  padding: 0 9px;
-  font-size: 11.5px;
-}
-.btn.icon-only {
-  width: 36px;
-  padding: 0;
-}
-
-.icon-btn {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  flex: none;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-2);
-  transition: background var(--transition), border-color var(--transition), color var(--transition);
-}
-.icon-btn:hover:not(:disabled) {
-  border-color: var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-.file-btn { padding-inline: 10px 8px; }
-.file-btn .chevron { width: 14px; height: 14px; color: var(--muted); }
-
-/* ---------- File menu ---------- */
-
-.file-menu-wrap { position: relative; }
-
-.file-menu {
-  position: absolute;
-  top: calc(100% + 7px);
-  right: 0;
-  z-index: 60;
-  width: min(260px, calc(100vw - 24px));
-  padding: 5px;
-  border: 1px solid var(--border-strong);
-  border-radius: 11px;
-  background: var(--surface);
-  box-shadow: var(--shadow-menu);
-}
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  min-height: 36px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-2);
-  font-size: 12.5px;
-  text-align: left;
-}
-.menu-item:hover,
-.menu-item:focus-visible {
-  background: var(--surface-2);
-  color: var(--text);
-  outline: none;
-}
-.menu-item .icon { color: var(--muted); }
-.menu-separator {
-  height: 1px;
-  margin: 5px 7px;
-  background: var(--border);
-}
-.menu-note {
-  margin: 5px 9px 4px;
-  color: var(--faint);
-  font-size: 10.5px;
-  line-height: 1.4;
-}
-
-/* ---------- Workspace ---------- */
-
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 400px);
-  gap: 20px;
-  align-items: start;
-  padding: 20px 0 0;
-}
-
-.stage {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-}
-
-.stage-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-.section-heading h2 {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
-  font-weight: 700;
-}
-.section-heading p {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.4;
-}
-
-/* ---------- Setup bar ---------- */
-
-.setup-bar {
-  display: grid;
-  grid-template-columns: minmax(170px, 1.35fr) minmax(98px, 0.62fr) minmax(236px, 1.35fr);
-  gap: 11px;
-  align-items: end;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-}
-
-.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-.field > label,
-.field > .field-label {
-  color: var(--muted);
-  font-size: 10.5px;
-  line-height: 1.2;
-  font-weight: 750;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
-}
-.field input,
-.field select {
-  width: 100%;
-  height: 36px;
-  min-width: 0;
-  padding: 0 9px;
-  border: 1px solid var(--border-strong);
-  border-radius: 7px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 12.5px;
-}
-.field input::placeholder { color: var(--faint); }
-.field select { padding-right: 28px; }
-.field select option { background: var(--surface); color: var(--text); }
-.field input:hover,
-.field select:hover { border-color: color-mix(in srgb, var(--border-strong) 75%, var(--text)); }
-.field input:focus-visible,
-.field select:focus-visible { border-color: var(--focus); }
-
-.segmented {
-  display: flex;
-  gap: 2px;
-  height: 36px;
-  padding: 3px;
-  border: 1px solid var(--border-strong);
-  border-radius: 7px;
-  background: var(--surface);
-}
-.segmented button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  flex: 1;
-  min-width: 0;
-  padding: 0 7px;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 620;
-}
-.segmented button .icon { width: 15px; height: 15px; }
-.segmented button:hover { background: var(--surface-2); color: var(--text-2); }
-.segmented button[aria-pressed="true"] {
-  background: var(--surface-3);
-  color: var(--text);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-}
-
-.rules-line {
-  margin: -4px 0 0;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.45;
-}
-
-/* ---------- Board ---------- */
-
-.board-area {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-
-.board-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 24px;
-}
-.mode-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 600;
-}
-.mode-indicator .swatch-chip {
-  width: 15px;
-  height: 15px;
-  border-radius: 4px;
-}
-.mode-indicator .icon { color: var(--muted); }
-.board-hint {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.4;
-  text-align: right;
-  max-width: 58%;
-}
-
-.board-frame {
-  display: flex;
-  justify-content: center;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface-inset);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
-}
-
-.board-shell {
-  --n: 8;
-  display: grid;
-  grid-template-columns: var(--ruler-size) minmax(0, 1fr);
-  grid-template-rows: var(--ruler-size) minmax(0, 1fr);
-  gap: var(--grid-gap);
-  width: min(100%, 700px, max(320px, calc(100dvh - 300px)));
-  min-width: 0;
-  margin: 0 auto;
-}
-
-.ruler-corner { grid-column: 1; grid-row: 1; }
-
-.col-ruler {
-  grid-column: 2;
-  grid-row: 1;
-  display: grid;
-  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
-  gap: var(--grid-gap);
-  align-items: center;
-  min-width: 0;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-  user-select: none;
-}
-.col-ruler > span { display: grid; place-items: center; min-width: 0; }
-
-.row-ruler {
-  grid-column: 1;
-  grid-row: 2;
-  display: grid;
-  grid-template-rows: repeat(var(--n), minmax(0, 1fr));
-  gap: var(--grid-gap);
-  align-items: center;
-  min-width: 0;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-  user-select: none;
-}
-.row-ruler > span { display: grid; place-items: center; min-height: 0; }
-
-.board {
-  grid-column: 2;
-  grid-row: 2;
-  display: grid;
-  grid-template-rows: repeat(var(--n), minmax(0, 1fr));
-  gap: var(--grid-gap);
-  aspect-ratio: 1;
-  min-width: 0;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-}
-
-.board-row {
-  display: grid;
-  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
-  gap: var(--grid-gap);
-  min-height: 0;
-}
-
-.cell {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: clamp(4px, 0.7vw, 8px);
-  background: var(--cell-empty);
-  color: var(--text);
-  box-shadow: inset 0 0 0 1px var(--cell-edge), 0 1px 1px var(--cell-shadow);
-  transition: filter var(--transition), box-shadow var(--transition), background var(--transition);
-  overflow: visible;
-  -webkit-tap-highlight-color: transparent;
-}
-.cell.is-painted {
-  background: var(--cell-bg);
-  color: var(--cell-ink);
-}
-.cell:hover { filter: brightness(1.07); z-index: 2; }
-.cell:not(.is-painted):hover { background: var(--cell-empty-hover); filter: none; }
-.cell:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-  z-index: 5;
-}
-.cell.is-candidate::after {
-  content: "";
-  position: absolute;
-  width: 24%;
-  height: 24%;
-  border-radius: 50%;
-  background: var(--cell-ink);
-  box-shadow: 0 0 0 2px var(--cell-eye), 0 1px 2px rgba(0, 0, 0, 0.25);
-  pointer-events: none;
-}
-.cell.is-conflict {
-  box-shadow: inset 0 0 0 2px var(--danger), 0 0 0 1px var(--danger-soft);
-}
-.cell.is-conflict::before {
-  content: "!";
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  z-index: 4;
-  display: grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--danger);
-  color: var(--danger-ink);
-  font-family: var(--font-sans);
-  font-size: 10px;
-  font-weight: 850;
-  line-height: 1;
-  box-shadow: 0 0 0 2px var(--surface-inset);
-  pointer-events: none;
-}
-.cell.is-step {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-  z-index: 3;
-}
-.cell.is-highlighted {
-  outline: 3px solid var(--focus);
-  outline-offset: -3px;
-  z-index: 4;
-  box-shadow: 0 0 0 3px var(--focus-soft);
-}
-.cell.is-invalid-cat { color: var(--danger-text); }
-
-.cat-icon {
-  width: 62%;
-  height: 62%;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.32));
-  pointer-events: none;
-}
-
-.board-caption {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.4;
-}
-.board-caption > span { font-variant-numeric: tabular-nums; }
-.board-legend {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.board-legend > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.board-legend .icon { width: 13px; height: 13px; color: var(--text-2); }
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text-2);
-  box-shadow: 0 0 0 1.5px var(--surface-inset);
-}
-.legend-conflict {
-  display: grid;
-  place-items: center;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--danger);
-  color: var(--danger-ink);
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 850;
-  line-height: 1;
-}
-
-
-/* ---------- Palette ---------- */
-
-.palette-block {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  padding-top: 15px;
-  border-top: 1px solid var(--border);
-}
-.palette-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-.palette-head h3 {
-  margin: 0;
-  color: var(--text-2);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.075em;
-  text-transform: uppercase;
-}
-
-.palette {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 6px;
-}
-.swatch {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-  min-height: 40px;
-  height: 100%;
-  padding: 5px 7px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--surface-2);
-  color: var(--text-2);
-  text-align: left;
-  transition: background var(--transition), border-color var(--transition), color var(--transition);
-}
-.swatch:hover { border-color: var(--border-strong); background: var(--surface-3); color: var(--text); }
-.swatch[aria-checked="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--text);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-.swatch-chip {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  flex: none;
-  border-radius: 6px;
-  background: var(--swatch);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  color: var(--swatch-ink);
-}
-.swatch-check { opacity: 0; }
-.swatch[aria-checked="true"] .swatch-check { opacity: 1; }
-.swatch-label {
-  min-width: 0;
-  font-size: 11px;
-  font-weight: 620;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-
-.erase-chip {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  flex: none;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: repeating-linear-gradient(45deg, var(--surface-3) 0 4px, var(--surface) 4px 8px);
-  color: var(--text-2);
-}
-.mode-indicator .erase-chip {
-  width: 15px;
-  height: 15px;
-  border-radius: 4px;
-}
-
-/* ---------- Action bar ---------- */
-
-.action-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-.secondary-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.solve-btn { min-width: 152px; min-height: 38px; }
-
-/* ---------- Sidebar ---------- */
-
-.sidebar {
-  position: sticky;
-  top: 20px;
-  min-width: 0;
-  max-height: calc(100dvh - 40px);
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-  padding-right: 2px;
-}
-.sidebar::-webkit-scrollbar,
-.candidate-results::-webkit-scrollbar,
-.history-list::-webkit-scrollbar,
-.modal-body::-webkit-scrollbar { width: 8px; height: 8px; }
-.sidebar::-webkit-scrollbar-thumb,
-.candidate-results::-webkit-scrollbar-thumb,
-.history-list::-webkit-scrollbar-thumb,
-.modal-body::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: var(--border-strong);
-}
-.sidebar::-webkit-scrollbar-track,
-.candidate-results::-webkit-scrollbar-track,
-.history-list::-webkit-scrollbar-track,
-.modal-body::-webkit-scrollbar-track { background: transparent; }
-
-.sidebar-surface {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.sidebar-section {
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-  padding: 16px;
-  border-top: 1px solid var(--border);
-}
-.sidebar-section:first-child { border-top: 0; }
-
-.section-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-.section-head h2 {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.3;
-  font-weight: 700;
-  letter-spacing: -0.005em;
-}
-.section-head p {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 10.5px;
-  line-height: 1.35;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex: none;
-  min-height: 22px;
-  padding: 0 7px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--muted);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.badge[data-tone="success"] { border-color: color-mix(in srgb, var(--success) 50%, var(--border)); background: var(--success-soft); color: var(--success-text); }
-.badge[data-tone="warning"] { border-color: color-mix(in srgb, var(--warning) 50%, var(--border)); background: var(--warning-soft); color: var(--warning-text); }
-.badge[data-tone="danger"] { border-color: color-mix(in srgb, var(--danger) 50%, var(--border)); background: var(--danger-soft); color: var(--danger-text); }
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--surface-2);
-}
-.metric { min-width: 0; padding: 8px 9px; }
-.metric + .metric { border-left: 1px solid var(--border); }
-.metric strong {
-  display: block;
-  font-size: 18px;
-  line-height: 1.15;
-  font-weight: 720;
-  letter-spacing: -0.025em;
-  font-variant-numeric: tabular-nums;
-}
-.metric span {
-  display: block;
-  margin-top: 1px;
-  color: var(--muted);
-  font-size: 9.5px;
-  line-height: 1.25;
-  font-weight: 650;
-  letter-spacing: 0.035em;
-  text-transform: uppercase;
-}
-
-.diagnostics { display: flex; flex-direction: column; gap: 6px; }
-.issue-list { display: flex; flex-direction: column; gap: 5px; }
-.issue {
-  display: grid;
-  grid-template-columns: 17px minmax(0, 1fr);
-  gap: 7px;
-  align-items: start;
-  width: 100%;
-  padding: 8px 9px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-size: 11.5px;
-  line-height: 1.45;
-  text-align: left;
-}
-.issue.is-actionable { cursor: pointer; }
-.issue.is-actionable:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-3);
-  color: var(--text);
-}
-.issue-icon { margin-top: 1px; }
-.issue.error .issue-icon { color: var(--danger-text); }
-.issue.warning .issue-icon { color: var(--warning-text); }
-.issue-text { min-width: 0; }
-
-.notice {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  gap: 8px;
-  align-items: start;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-size: 11.5px;
-  line-height: 1.5;
-}
-.notice-icon { margin-top: 1px; color: var(--muted); }
-.notice strong {
-  display: block;
-  color: var(--text);
-  font-size: 11.5px;
-  font-weight: 700;
-}
-.notice p { margin: 3px 0 0; color: var(--text-2); }
-.notice small { display: block; margin-top: 4px; color: var(--muted); font-size: 10.5px; line-height: 1.4; }
-.notice.success { border-color: color-mix(in srgb, var(--success) 45%, var(--border)); background: var(--success-soft); }
-.notice.success .notice-icon { color: var(--success-text); }
-.notice.warning { border-color: color-mix(in srgb, var(--warning) 45%, var(--border)); background: var(--warning-soft); }
-.notice.warning .notice-icon { color: var(--warning-text); }
-.notice.danger { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); background: var(--danger-soft); }
-.notice.danger .notice-icon { color: var(--danger-text); }
-.notice.info { border-color: color-mix(in srgb, var(--secondary) 38%, var(--border)); background: var(--secondary-soft); }
-.notice.info .notice-icon { color: var(--secondary-text); }
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 7px;
-  padding: 17px 12px;
-  border: 1px dashed var(--border);
-  border-radius: 9px;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.45;
-  text-align: center;
-}
-.empty-state .empty-icon { color: var(--faint); }
-.empty-state p { margin: 0; max-width: 32ch; }
-.empty-state small { color: var(--faint); font-size: 10.5px; }
-
-.section-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.footer-note { color: var(--muted); font-size: 10.5px; line-height: 1.4; }
-
-/* ---------- Next deduction ---------- */
-
-.next-result { display: flex; flex-direction: column; gap: 8px; }
-.step-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 11px;
-  border: 1px solid var(--accent-line);
-  border-left: 3px solid var(--accent);
-  border-radius: 8px;
-  background: var(--accent-soft);
-}
-.step-top { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.step-top .swatch-chip { width: 16px; height: 16px; border-radius: 4px; }
-.step-color { font-size: 12px; font-weight: 700; }
-.forced-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 5px;
-  border: 1px solid var(--accent-line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--accent-text);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.forced-badge .icon { width: 11px; height: 11px; }
-.step-coord {
-  margin-left: auto;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-}
-.step-reason { margin: 0; color: var(--text-2); font-size: 11.5px; line-height: 1.5; }
-.step-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-  color: var(--muted);
-  font-size: 10.5px;
-  line-height: 1.4;
-}
-.deduction-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-
-.spinner {
-  display: inline-block;
-  width: 15px;
-  height: 15px;
-  border: 2px solid var(--border-strong);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 800ms linear infinite;
-}
-.spinner-sm { width: 13px; height: 13px; border-width: 2px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ---------- Candidates ---------- */
-
-.candidate-results {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  max-height: 340px;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-  padding-right: 2px;
-}
-.candidate-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 7px 0;
-  border-top: 1px solid var(--border);
-}
-.candidate-group:first-of-type { border-top: 0; padding-top: 0; }
-.candidate-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.candidate-head .swatch-chip { width: 14px; height: 14px; border-radius: 4px; }
-.candidate-name { font-size: 11.5px; font-weight: 650; color: var(--text-2); }
-.candidate-count {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-}
-.coord-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.coord-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  min-height: 22px;
-  padding: 0 5px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.coord-chip:hover { border-color: var(--border-strong); background: var(--surface-3); color: var(--text); }
-.coord-chip.is-confirmed { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); background: var(--success-soft); color: var(--success-text); }
-.coord-chip .icon { width: 11px; height: 11px; }
-
-.switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 10.5px;
-  line-height: 1.3;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.switch input {
-  width: 15px;
-  height: 15px;
-  margin: 0;
-  accent-color: var(--accent);
-}
-.switch.is-disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ---------- History ---------- */
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  max-height: 280px;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-  padding-right: 2px;
-}
-.history-item {
-  display: grid;
-  grid-template-columns: 25px minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: start;
-  padding: 7px 0;
-  border-top: 1px solid var(--border);
-}
-.history-item:first-child { border-top: 0; padding-top: 0; }
-.history-icon {
-  display: grid;
-  place-items: center;
-  width: 25px;
-  height: 25px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--surface-2);
-  color: var(--muted);
-}
-.history-icon.edit { color: var(--text-2); }
-.history-icon.validate { color: var(--secondary-text); }
-.history-icon.solve,
-.history-icon.forced { color: var(--accent-text); }
-.history-icon.undo,
-.history-icon.redo { color: var(--faint); }
-.history-icon.file { color: var(--secondary-text); }
-.history-icon.clear { color: var(--danger-text); }
-.history-content { min-width: 0; }
-.history-kind {
-  display: block;
-  color: var(--faint);
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  line-height: 1.3;
-  text-transform: uppercase;
-}
-.history-message { margin: 1px 0 0; color: var(--text-2); font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
-.history-time { color: var(--faint); font-family: var(--font-mono); font-size: 9.5px; line-height: 1.4; font-variant-numeric: tabular-nums; white-space: nowrap; }
-
-/* ---------- Toasts ---------- */
-
-.toast-region {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 120;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  width: min(370px, calc(100vw - 28px));
-  pointer-events: none;
-}
-.toast {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) 22px;
-  gap: 8px;
-  align-items: start;
-  padding: 9px 9px 9px 11px;
-  border: 1px solid var(--border-strong);
-  border-radius: 9px;
-  background: var(--surface);
-  box-shadow: var(--shadow-menu);
-  color: var(--text);
-  font-size: 11.5px;
-  line-height: 1.45;
-  pointer-events: auto;
-  animation: toast-in 160ms ease both;
-}
-.toast-icon { margin-top: 1px; color: var(--muted); }
-.toast.success .toast-icon { color: var(--success-text); }
-.toast.warning .toast-icon { color: var(--warning-text); }
-.toast.error .toast-icon { color: var(--danger-text); }
-.toast.info .toast-icon { color: var(--secondary-text); }
-.toast-message { min-width: 0; overflow-wrap: anywhere; }
-.toast-close {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--muted);
-}
-.toast-close:hover { background: var(--surface-2); color: var(--text); }
-@keyframes toast-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-
-/* ---------- Dialog ---------- */
-
-dialog.modal {
-  width: min(600px, calc(100vw - 32px));
-  max-width: none;
-  max-height: min(86dvh, 760px);
-  margin: auto;
-  padding: 0;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-dialog.modal::backdrop { background: var(--backdrop); }
-.modal-shell { display: flex; flex-direction: column; max-height: min(86dvh, 760px); }
-.modal-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--border);
-}
-.modal-head h2 { margin: 0; font-size: 15px; line-height: 1.3; letter-spacing: -0.015em; }
-.modal-subtitle { margin: 3px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.4; }
-.modal-body { padding: 16px 18px; overflow: auto; }
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 7px;
-  flex-wrap: wrap;
-  padding: 12px 18px;
-  border-top: 1px solid var(--border);
-}
-.modal-actions:empty { display: none; }
-
-.dialog-note { margin: 0 0 10px; color: var(--muted); font-size: 11.5px; line-height: 1.5; }
-.confirm-message { margin: 0; color: var(--text-2); font-size: 13px; line-height: 1.55; }
-.confirm-message strong { color: var(--text); }
-.rules-content { display: flex; flex-direction: column; gap: 14px; }
-.rules-content section { display: flex; flex-direction: column; gap: 5px; }
-.rules-content h3 { margin: 0; color: var(--text); font-size: 12px; font-weight: 750; }
-.rules-content p,
-.rules-content li { color: var(--text-2); font-size: 12px; line-height: 1.55; }
-.rules-content p { margin: 0; }
-.rules-content ul { margin: 0; padding-left: 18px; }
-.rules-content li { margin: 3px 0; }
-.rules-content strong { color: var(--text); }
-.rules-callout {
-  padding: 9px 10px;
-  border: 1px solid var(--accent-line);
-  border-radius: 7px;
-  background: var(--accent-soft);
-  color: var(--text-2);
-  font-size: 11.5px;
-  line-height: 1.5;
-}
-.rules-callout strong { color: var(--accent-text); }
-.key-list { display: flex; flex-wrap: wrap; gap: 5px 12px; }
-.key-list span { display: inline-flex; align-items: center; gap: 5px; color: var(--text-2); font-size: 11.5px; }
-kbd {
-  padding: 1px 5px;
-  border: 1px solid var(--border-strong);
-  border-radius: 4px;
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.saved-list { display: flex; flex-direction: column; gap: 5px; }
-.saved-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 9px 10px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--surface-2);
-  color: var(--text);
-  text-align: left;
-}
-.saved-item:hover { border-color: var(--border-strong); background: var(--surface-3); }
-.saved-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.saved-name { font-size: 12px; font-weight: 650; overflow-wrap: anywhere; }
-.saved-meta { color: var(--muted); font-size: 10.5px; line-height: 1.4; }
-.saved-action { display: inline-flex; align-items: center; gap: 4px; flex: none; color: var(--accent-text); font-size: 10.5px; font-weight: 700; }
-
-/* ---------- Footer ---------- */
-
-.app-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px 24px;
-  flex-wrap: wrap;
-  margin-top: 20px;
-  padding: 14px 0 22px;
-  border-top: 1px solid var(--border);
-  color: var(--faint);
-  font-size: 10.5px;
-  line-height: 1.45;
-}
-
-/* ---------- Responsive ---------- */
-
-@media (max-width: 1120px) {
-  .workspace { grid-template-columns: 1fr; }
-  .sidebar {
-    position: static;
-    max-height: none;
-    overflow: visible;
-    padding-right: 0;
-  }
-  .sidebar-surface {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
-  }
-  .sidebar-section { border-top: 1px solid var(--border); }
-  .sidebar-section:nth-child(1),
-  .sidebar-section:nth-child(2) { border-top: 0; }
-  .sidebar-section:nth-child(odd) { border-right: 1px solid var(--border); }
-  .board-shell { width: min(100%, 680px); }
-  .palette { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-
-@media (max-width: 820px) {
-  .setup-bar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .field-name { grid-column: 1 / -1; }
-  .status-pill { display: none; }
-  .header-divider { display: none; }
-  .board-hint { max-width: 52%; }
-}
-
-@media (max-width: 720px) {
-  .app-shell { padding-inline: 10px; }
-  .app-header { padding: 13px 0 12px; gap: 8px; }
-  .brand { gap: 9px; }
-  .brand-mark { width: 36px; height: 36px; border-radius: 10px; }
-  .brand-mark svg { width: 31px; height: 31px; }
-  .brand h1 { font-size: 16px; }
-  .header-actions { gap: 4px; }
-  .header-actions .icon-btn { width: 34px; height: 34px; }
-  .file-btn { min-height: 34px; padding-inline: 8px; font-size: 11.5px; }
-  .file-btn .chevron { display: none; }
-  .workspace { padding-top: 12px; gap: 12px; }
-  .stage { padding: 14px; gap: 12px; }
-  .stage-top { gap: 8px; }
-  .section-heading h2 { font-size: 15px; }
-  .section-heading p { font-size: 11px; }
-  .setup-bar { gap: 9px; padding: 10px; }
-  .rules-line { font-size: 11px; }
-  .board-frame { padding: 8px; }
-  .board-shell { --ruler-size: 15px; --grid-gap: 4px; width: 100%; }
-  .col-ruler, .row-ruler { font-size: 8.5px; }
-  .board-toolbar { align-items: flex-start; flex-direction: column; gap: 3px; }
-  .board-hint { max-width: none; text-align: left; }
-  .palette { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .swatch { min-height: 36px; padding: 4px 6px; gap: 6px; }
-  .swatch-chip { width: 20px; height: 20px; }
-  .swatch-label { font-size: 10.5px; }
-  .action-bar { align-items: stretch; }
-  .secondary-actions { width: 100%; }
-  .secondary-actions .btn { flex: 1; }
-  .solve-btn { width: 100%; }
-  .sidebar-surface { display: flex; flex-direction: column; }
-  .sidebar-section { border-right: 0 !important; }
-  .sidebar-section:nth-child(2) { border-top: 1px solid var(--border); }
-  .sidebar-section { padding: 14px; }
-  .candidate-results { max-height: 300px; }
-  .history-list { max-height: 260px; }
-  .toast-region { right: 10px; bottom: 10px; width: calc(100vw - 20px); }
-  .app-footer { margin-top: 12px; padding-bottom: 18px; }
-  dialog.modal { width: calc(100vw - 20px); max-height: 90dvh; }
-  .modal-shell { max-height: 90dvh; }
-  .modal-head, .modal-body, .modal-actions { padding-left: 14px; padding-right: 14px; }
-}
-
-@media (max-width: 430px) {
-  .setup-bar { grid-template-columns: 1fr; }
-  .field-mode { grid-column: auto; }
-  .palette { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .board-shell { --ruler-size: 13px; --grid-gap: 3px; }
-  .col-ruler, .row-ruler { font-size: 7.5px; }
-  .board-legend { gap: 8px; }
-  .secondary-actions .btn { padding-inline: 6px; font-size: 11px; }
-  .step-coord { margin-left: 0; width: 100%; }
-  .section-head { gap: 6px; }
-  .switch { font-size: 10px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .skip-link { transition: none; }
-}
-</style>
-</head>
-
-<body>
-<svg class="svg-sprite" aria-hidden="true" focusable="false">
-  <symbol id="i-cat" viewBox="0 0 24 24">
-    <path fill="currentColor" d="M4.2 10.2V4.7c0-.65.75-.98 1.25-.55l4.15 3.5h4.8l4.15-3.5c.5-.43 1.25-.1 1.25.55v5.5a8 8 0 0 1-15.6 0Z"/>
-    <circle cx="9.1" cy="10.5" r="1.25" fill="var(--cat-eye, #fff)"/>
-    <circle cx="14.9" cy="10.5" r="1.25" fill="var(--cat-eye, #fff)"/>
-    <path d="M10.5 14.2h3" fill="none" stroke="var(--cat-eye, #fff)" stroke-width="1.2" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="i-brush" viewBox="0 0 24 24">
-    <path d="m14 4 6 6-9 9-6-6 9-9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="m5 13-1 6 6-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-eraser" viewBox="0 0 24 24">
-    <path d="m4 16 8-8 6 6-8 8H6l-2-2v-4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M9 21h11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="i-undo" viewBox="0 0 24 24">
-    <path d="M9 7 4 12l5 5M4 12h9a7 7 0 0 1 7 7v1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-redo" viewBox="0 0 24 24">
-    <path d="m15 7 5 5-5 5M20 12h-9a7 7 0 0 0-7 7v1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-check" viewBox="0 0 24 24">
-    <path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-alert" viewBox="0 0 24 24">
-    <path d="M12 4 21 20H3L12 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M12 9v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    <circle cx="12" cy="17.2" r="1" fill="currentColor"/>
-  </symbol>
-  <symbol id="i-info" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <path d="M12 11v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    <circle cx="12" cy="7.6" r="1" fill="currentColor"/>
-  </symbol>
-  <symbol id="i-search" viewBox="0 0 24 24">
-    <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="i-save" viewBox="0 0 24 24">
-    <path d="M5 4h11l3 3v13H5V4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M8 4v6h8V4M8 20v-6h8v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-folder" viewBox="0 0 24 24">
-    <path d="M3 7h7l2 2h9v10H3V7Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-download" viewBox="0 0 24 24">
-    <path d="M12 3v11M7 10l5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-upload" viewBox="0 0 24 24">
-    <path d="M12 20V9M7 13l5-5 5 5M4 4h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-sun" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="i-moon" viewBox="0 0 24 24">
-    <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-help" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .7-1.5 1.2-1.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    <circle cx="12" cy="17" r="1" fill="currentColor"/>
-  </symbol>
-  <symbol id="i-chevron" viewBox="0 0 24 24">
-    <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-close" viewBox="0 0 24 24">
-    <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="i-arrow" viewBox="0 0 24 24">
-    <path d="M4 12h16M14 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-history" viewBox="0 0 24 24">
-    <path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-file" viewBox="0 0 24 24">
-    <path d="M6 3h8l4 4v14H6V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M14 3v5h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="i-target" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="i-grid" viewBox="0 0 24 24">
-    <rect x="4" y="4" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <rect x="14" y="4" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <rect x="4" y="14" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <rect x="14" y="14" width="6" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
-  </symbol>
-</svg>
-
-<a class="skip-link" href="#main">Skip to puzzle workspace</a>
-
-<div class="app-shell">
-  <header class="app-header">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 44 44" focusable="false">
-          <rect x="2" y="2" width="40" height="40" rx="12" fill="var(--accent)"/>
-          <g fill="none" stroke="var(--accent-ink)" stroke-width="1.8" opacity=".38">
-            <rect x="9" y="9" width="6" height="6" rx="1.5"/>
-            <rect x="29" y="9" width="6" height="6" rx="1.5"/>
-            <rect x="9" y="29" width="6" height="6" rx="1.5"/>
-            <rect x="29" y="29" width="6" height="6" rx="1.5"/>
-          </g>
-          <path d="M14.5 23V15l5 4h5l5-4v8a7.5 7.5 0 0 1-15 0Z" fill="var(--accent-ink)"/>
-          <circle cx="19" cy="23" r="1.2" fill="var(--accent)"/>
-          <circle cx="25" cy="23" r="1.2" fill="var(--accent)"/>
-        </svg>
-      </div>
-      <div class="brand-copy">
-        <h1>Meowdoku Solver</h1>
-      </div>
-    </div>
-    <div class="header-actions">
-      <div class="status-pill" id="headerStatus" data-tone="neutral" title="Current board state" aria-live="polite" aria-atomic="true">
-        <span class="status-dot" aria-hidden="true"></span>
-        <span id="topStatus">Empty board</span>
-      </div>
-      <div class="header-divider" aria-hidden="true"></div>
-      <button type="button" class="icon-btn" id="themeBtn" aria-label="Switch to light theme" title="Switch to light theme">
-        <svg class="icon" aria-hidden="true"><use href="#i-sun"></use></svg>
-      </button>
-      <button type="button" class="icon-btn" id="helpBtn" aria-label="Rules and solver logic" title="Rules and solver logic">
-        <svg class="icon" aria-hidden="true"><use href="#i-help"></use></svg>
-      </button>
-      <div class="file-menu-wrap">
-        <button type="button" class="btn file-btn" id="fileBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="fileMenu">
-          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"></use></svg>
-          <span>File</span>
-          <svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"></use></svg>
-        </button>
-        <div class="file-menu" id="fileMenu" role="menu" aria-labelledby="fileBtn" hidden>
-          <button type="button" class="menu-item" id="saveBtn" role="menuitem" tabindex="-1">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-save"></use></svg>
-            <span>Save puzzle</span>
-          </button>
-          <button type="button" class="menu-item" id="loadBtn" role="menuitem" tabindex="-1">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"></use></svg>
-            <span>Load saved…</span>
-          </button>
-          <div class="menu-separator" role="separator"></div>
-          <button type="button" class="menu-item" id="importBtn" role="menuitem" tabindex="-1">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-upload"></use></svg>
-            <span>Import JSON…</span>
-          </button>
-          <button type="button" class="menu-item" id="exportBtn" role="menuitem" tabindex="-1">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-download"></use></svg>
-            <span>Export JSON</span>
-          </button>
-          <p class="menu-note">Saved puzzles stay in this browser.</p>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="workspace" id="main">
-    <section class="stage" aria-labelledby="canvasTitle">
-      <div class="stage-top">
-        <div class="section-heading">
-          <h2 id="canvasTitle">Puzzle canvas</h2>
-          <p>Paint every cell, then let the solver verify the arrangement.</p>
-        </div>
-        <button type="button" class="btn ghost danger-text" id="clearBtn" disabled>
-          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-close"></use></svg>
-          <span>Clear board</span>
-        </button>
-      </div>
-
-      <div class="setup-bar">
-        <div class="field field-name">
-          <label for="puzzleName">Puzzle name</label>
-          <input id="puzzleName" type="text" maxlength="50" autocomplete="off" spellcheck="false" placeholder="Untitled puzzle">
-        </div>
-        <div class="field">
-          <label for="sizeSelect">Board size</label>
-          <select id="sizeSelect">
-            <option value="4">4 × 4</option>
-            <option value="5">5 × 5</option>
-            <option value="6">6 × 6</option>
-            <option value="7">7 × 7</option>
-            <option value="8" selected>8 × 8</option>
-            <option value="9">9 × 9</option>
-            <option value="10">10 × 10</option>
-          </select>
-        </div>
-        <div class="field field-mode">
-          <span class="field-label" id="modeLabel">Paint action</span>
-          <div class="segmented" role="group" aria-labelledby="modeLabel">
-            <button type="button" data-mode="paint" aria-pressed="true">
-              <svg class="icon" aria-hidden="true"><use href="#i-brush"></use></svg>
-              <span>Paint</span>
-            </button>
-            <button type="button" data-mode="erase" aria-pressed="false">
-              <svg class="icon" aria-hidden="true"><use href="#i-eraser"></use></svg>
-              <span>Erase</span>
-            </button>
-            <button type="button" data-mode="cat" aria-pressed="false">
-              <svg class="icon" aria-hidden="true"><use href="#i-cat"></use></svg>
-              <span>Cat</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <p class="rules-line">One cat per colour, row, and column · cats never touch · each colour forms one connected region.</p>
-
-      <div class="board-area">
-        <div class="board-toolbar">
-          <div class="mode-indicator" id="activeMode"></div>
-          <p class="board-hint" id="paintHint"></p>
-        </div>
-        <div class="board-frame">
-          <div class="board-shell" id="boardShell">
-            <div class="ruler-corner" aria-hidden="true"></div>
-            <div class="col-ruler" id="colRuler" aria-hidden="true"></div>
-            <div class="row-ruler" id="rowRuler" aria-hidden="true"></div>
-            <div class="board" id="board" role="grid" aria-label="Puzzle grid" aria-describedby="boardInstructions" aria-rowcount="8" aria-colcount="8"></div>
-          </div>
-        </div>
-        <p class="sr-only" id="boardInstructions">Use the arrow keys to move between cells. Press Enter or Space to apply the current mode. Row and column coordinates start at 1.</p>
-        <div class="board-caption">
-          <span id="boardCount">64 cells · 0 painted</span>
-          <div class="board-legend" aria-label="Board legend">
-            <span><svg class="icon" aria-hidden="true"><use href="#i-cat"></use></svg> Cat</span>
-            <span><i class="legend-dot" aria-hidden="true"></i> Candidate</span>
-            <span><i class="legend-conflict" aria-hidden="true">!</i> Conflict</span>
-          </div>
-        </div>
-      </div>
-
-      <section class="palette-block" aria-labelledby="paletteTitle">
-        <div class="palette-head">
-          <h3 id="paletteTitle">Palette</h3>
-        </div>
-        <div class="palette" id="palette" role="radiogroup" aria-label="Paint colour"></div>
-      </section>
-
-      <div class="action-bar">
-        <div class="secondary-actions">
-          <button type="button" class="btn small" id="undoBtn" disabled title="Undo (Ctrl/Cmd + Z)">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-undo"></use></svg>
-            <span>Undo</span>
-          </button>
-          <button type="button" class="btn small" id="redoBtn" disabled title="Redo (Ctrl/Cmd + Shift + Z)">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-redo"></use></svg>
-            <span>Redo</span>
-          </button>
-          <button type="button" class="btn small" id="validateBtn">
-            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"></use></svg>
-            <span>Validate</span>
-          </button>
-        </div>
-        <button type="button" class="btn primary solve-btn" id="solveBtn">
-          <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
-          <span>Solve puzzle</span>
-        </button>
-      </div>
-    </section>
-
-    <aside class="sidebar" aria-label="Solver workspace">
-      <div class="sidebar-surface">
-        <section class="sidebar-section" aria-labelledby="diagnosticsTitle">
-          <div class="section-head">
-            <div>
-              <h2 id="diagnosticsTitle">Board diagnostics</h2>
-              <p>Live structural checks</p>
-            </div>
-            <span class="badge" id="diagBadge" data-tone="neutral">Empty</span>
-          </div>
-          <div class="metrics">
-            <div class="metric"><strong id="paintedStat">0</strong><span>Painted cells</span></div>
-            <div class="metric"><strong id="colourStat">0</strong><span>Colours used</span></div>
-            <div class="metric"><strong id="catStat">0</strong><span>Manual cats</span></div>
-          </div>
-          <div id="diagnostics" class="diagnostics"></div>
-          <div class="section-footer">
-            <button type="button" class="btn ghost small" id="removeCatsBtn" disabled>Remove all cats</button>
-          </div>
-        </section>
-
-        <section class="sidebar-section" aria-labelledby="deductionTitle">
-          <div class="section-head">
-            <div>
-              <h2 id="deductionTitle">Next deduction</h2>
-              <p>Only placements common to every solution</p>
-            </div>
-          </div>
-          <div id="nextResult" class="next-result"></div>
-          <div class="deduction-actions">
-            <button type="button" class="btn small" id="nextBtn" disabled>
-              <span>Next step</span>
-              <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow"></use></svg>
-            </button>
-            <button type="button" class="btn primary small" id="applyStepBtn" disabled>Place this cat</button>
-          </div>
-        </section>
-
-        <section class="sidebar-section" aria-labelledby="candidatesTitle">
-          <div class="section-head">
-            <div>
-              <h2 id="candidatesTitle">Candidate locations</h2>
-              <p id="candidateSubtitle">Solve to calculate</p>
-            </div>
-            <label class="switch" for="candidateToggle">
-              <input type="checkbox" id="candidateToggle" checked disabled>
-              <span>Show on grid</span>
-            </label>
-          </div>
-          <div id="candidateResults" class="candidate-results"></div>
-        </section>
-
-        <section class="sidebar-section" aria-labelledby="historyTitle">
-          <div class="section-head">
-            <div>
-              <h2 id="historyTitle">Deduction history</h2>
-              <p>Board edits and solver activity</p>
-            </div>
-            <button type="button" class="btn ghost small" id="clearHistoryBtn" disabled>Clear</button>
-          </div>
-          <div id="history" class="history-list" role="list" aria-label="Most recent activity first"></div>
-        </section>
-      </div>
-    </aside>
-  </main>
-
-  <footer class="app-footer">
-    <span>Local-first · Saved puzzles stay in this browser.</span>
-    <span>Solver cap: 20,000 solutions / 3 s · capped results are provisional.</span>
-  </footer>
-</div>
-
-<div id="toastRegion" class="toast-region"></div>
-
-<dialog id="modal" class="modal" aria-labelledby="modalTitle">
-  <div class="modal-shell">
-    <div class="modal-head">
-      <div>
-        <h2 id="modalTitle"></h2>
-        <p class="modal-subtitle" id="modalSubtitle" hidden></p>
-      </div>
-      <button type="button" class="icon-btn" id="modalClose" aria-label="Close dialog">
-        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
-      </button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
-    <div class="modal-actions" id="modalActions"></div>
-  </div>
-</dialog>
-
-<input type="file" id="importInput" accept=".json,application/json" hidden>
-
-<script>
 (() => {
 "use strict";
 
@@ -1910,6 +13,8 @@ kbd {
    Constants and state
    ------------------------------------------------------------------ */
 
+/* Palette order is part of the saved data format: `cells` stores these
+   indices. Do not reorder existing entries; append new colours instead. */
 const COLORS = [
   { name: "Light green", hex: "#b9edaa", ink: "#1a1a1a", eye: "#ffffff" },
   { name: "Light pink",  hex: "#ffc8dc", ink: "#1a1a1a", eye: "#ffffff" },
@@ -1925,6 +30,8 @@ const COLORS = [
   { name: "Yellow",      hex: "#f5d65e", ink: "#1a1a1a", eye: "#ffffff" }
 ];
 
+/* Search budget. Hitting either limit makes candidate lists provisional and
+   suppresses forced-placement claims. */
 const MAX_SOLUTIONS = 20000;
 const SEARCH_TIME_MS = 3000;
 const MAX_HISTORY = 40;
@@ -1987,6 +94,9 @@ const dom = {
 
 const modeButtons = Array.from(document.querySelectorAll(".segmented [data-mode]"));
 
+/* User-owned board state. `cells` is row-major with -1 for unpainted and
+   `cats` holds manual cat cell indices. Solver results, undo stacks, and
+   highlights are derived or transient and are invalidated by board changes. */
 let n = 8;
 let cells = Array(n * n).fill(-1);
 let cats = new Set();
@@ -2024,6 +134,8 @@ let activeDialog = null;
    Small utilities
    ------------------------------------------------------------------ */
 
+/* Board indices are row-major: index = r * n + c. User-facing coordinates are
+   1-based; rc() is the single conversion back to 0-based row and column. */
 const rc = (index) => ({ r: Math.floor(index / n), c: index % n });
 const coord = (index) => {
   const { r, c } = rc(index);
@@ -2038,6 +150,12 @@ const lowerColorName = (index) => colorName(index).toLowerCase();
 const plural = (count, singular, pluralWord) => count === 1 ? singular : (pluralWord || singular + "s");
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+/**
+ * Return the in-bounds cell indices around `index`.
+ * The default is the four orthogonal neighbours, which defines colour-region
+ * connectivity. Pass `true` as the second argument for all eight neighbours,
+ * used by the no-touching rule for cats.
+ */
 function neighbours(index, diagonal = false) {
   const { r, c } = rc(index);
   const out = [];
@@ -2674,6 +792,8 @@ function renderHistory() {
   dom.history.replaceChildren(fragment);
 }
 
+/* Undo snapshots capture only user-owned board data. Applying one invalidates
+   derived analysis, solver results, and highlights rather than storing them. */
 function snapshot() {
   return { cells: cells.slice(), cats: [...cats] };
 }
@@ -2683,6 +803,8 @@ function updateUndoButtons() {
   dom.redoBtn.disabled = isSolving || redoStack.length === 0;
 }
 
+/* Snapshot the state before a user-visible edit. The stack is bounded to 100
+   entries, and any new edit clears the redo branch. */
 function pushUndoSnapshot(snapshotValue = snapshot()) {
   undoStack.push(snapshotValue);
   if (undoStack.length > 100) undoStack.shift();
@@ -2955,6 +1077,11 @@ function makeIssue(message, cellsList = [], severity = "error") {
   return { message, cells: cellsList, severity };
 }
 
+/**
+ * Flood-fill every painted cell into orthogonal components of one colour.
+ * Two groups with the same colour mean that colour is disconnected, which is
+ * a rule violation; diagonal contact deliberately does not join regions.
+ */
 function connectedComponents() {
   const unseen = new Set();
   for (let i = 0; i < cells.length; i++) {
@@ -2982,6 +1109,12 @@ function connectedComponents() {
   return components;
 }
 
+/**
+ * Build the live structural model: painted/unpainted cells, used colours,
+ * connected components, manual-cat conflicts, and highlighted conflict cells.
+ * This is a pure analysis pass; it never mutates the board or searches.
+ * Errors block solving; warnings only describe an incomplete board.
+ */
 function analyze() {
   const paintedIndices = [];
   const unpaintedIndices = [];
@@ -3216,6 +1349,26 @@ function refreshBoardAndDiagnostics() {
    Solver
    ------------------------------------------------------------------ */
 
+/**
+ * Backtracking search for one cat per used colour such that no two cats share
+ * a row, a column, or any of the eight touching cells.
+ *
+ * Manual cats are hard constraints: their colour must use that exact cell.
+ * At each node the unassigned colour with the fewest legal cells is chosen
+ * next (minimum remaining values), while `assigned`, `rowUsed`, `colUsed`, and
+ * `usedCells` hold the partial assignment.
+ *
+ * Every complete assignment counts as one solution. As solutions are recorded,
+ * `possible` accumulates the cells each colour occupied and `cellOccurrences`
+ * counts how many solutions used each cell. These drive the candidate lists.
+ *
+ * MAX_SOLUTIONS and SEARCH_TIME_MS bound the work. Hitting either limit marks
+ * the result capped: solution counts become lower bounds, candidate lists may
+ * be incomplete, and forced placements are deliberately not claimed.
+ *
+ * A forced step is a placement shared by every enumerated solution - either
+ * the only remaining candidate for a colour or a cell used by all of them.
+ */
 function searchSolutions(analysis) {
   const colors = analysis.used.slice();
   const colorCells = new Map(colors.map((color) => [color, []]));
@@ -3384,6 +1537,9 @@ function setSolverBlocked(kind, title, message, historyMessage) {
   if (historyMessage) addHistory("solve", historyMessage);
 }
 
+/* Autosave runs before analysis and before every early return, so a recoverable
+   copy exists even for incomplete or invalid boards. The search is deferred one
+   animation frame so the "Searching..." state can paint first. */
 function solve() {
   if (isSolving) return;
   autosaveBoard();
@@ -3503,6 +1659,9 @@ function updateCandidateToggle() {
     : "Candidates are available after a completed search";
 }
 
+/* Forced steps are only computed for an uncapped search, so every placement
+   presented here is common to all enumerated solutions. Capped and
+   inconclusive searches show a warning instead of a claimed next step. */
 function renderNextPanel() {
   dom.nextResult.setAttribute("aria-busy", String(isSolving || solver?.status === "searching"));
   const fragment = document.createDocumentFragment();
@@ -3622,6 +1781,9 @@ function renderNextPanel() {
   dom.nextResult.replaceChildren(fragment);
 }
 
+/* Candidate lists come from the completed search: a cell is shown for a colour
+   only if that colour occupied it in at least one enumerated solution. Capped
+   results are labelled provisional, never presented as the complete set. */
 function renderCandidatePanel() {
   const fragment = document.createDocumentFragment();
 
@@ -3773,6 +1935,13 @@ function invalidPuzzle(reason) {
   return { ok: false, error: reason };
 }
 
+/**
+ * Validate untrusted puzzle data from imports, named saves, or autosaves and
+ * return a normalised copy. Versions 1 and 2 are accepted. Retired fields such
+ * as `maxRegion` are intentionally ignored rather than rejected. Board size,
+ * cell values, cat indices/duplicates, selected colour, and mode are all
+ * bounds-checked before anything is applied to the app.
+ */
 function validatePuzzleData(input, fallbackName = "Untitled puzzle") {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     return invalidPuzzle("The file must contain a JSON object with puzzle data.");
@@ -3867,6 +2036,8 @@ function showMessageDialog(title, message, subtitle = "") {
    Replacing the whole puzzle
    ------------------------------------------------------------------ */
 
+/* Version 2 is the current on-disk shape used by exports, named saves, and
+   autosaves. Retired fields such as `maxRegion` are deliberately omitted. */
 function buildPuzzlePayload({ includeSavedAt = false } = {}) {
   const name = dom.puzzleName.value.trim().slice(0, 50) || "Untitled puzzle";
   const payload = {
@@ -3882,6 +2053,8 @@ function buildPuzzlePayload({ includeSavedAt = false } = {}) {
   return payload;
 }
 
+/* Replace the whole board from already-validated data. Undo history and
+   derived solver state are intentionally reset; callers must validate first. */
 function applyPuzzleData(value, { kind = "load", message = "" } = {}) {
   closeFileMenu();
   suppressNextClick = false;
@@ -3948,8 +2121,10 @@ function storageFailureMessage(error) {
    Autosave and startup recovery
 
    Autosave is a best-effort recovery point written before validation or
-   solving. It is deliberately separate from user-named saves and must
-   never prevent either operation from running.
+   solving. Lifecycle: written by validateBoard() and solve(), read once
+   during init(), removed when the board is empty or recovery is declined,
+   and discarded when malformed. It never overwrites user-named saves and
+   must never prevent either operation from running.
    ------------------------------------------------------------------ */
 
 let autosaveFailureReported = false;
@@ -4054,6 +2229,9 @@ async function offerAutosaveRecovery() {
   }
 }
 
+/* User-named saves live under `cat-solver:<name>` and are separate from the
+   autosave key. Every entry is re-validated on read so corrupt or stale data
+   is counted and hidden instead of reaching the board. */
 function readSavedPuzzles() {
   let storage;
   try {
@@ -4205,6 +2383,8 @@ async function openLoadDialog() {
   }
 }
 
+/* Named saves are keyed by puzzle name, so saving over an existing key asks
+   for confirmation first. Autosave is never touched by this path. */
 async function savePuzzle() {
   if (isSolving) return;
   closeFileMenu();
@@ -4298,6 +2478,8 @@ function readFileText(file) {
   });
 }
 
+/* Read, bound-check, and parse before prompting. The current board is only
+   replaced after validation succeeds and the user confirms. */
 async function handleImportFile() {
   const file = dom.importInput.files && dom.importInput.files[0];
   dom.importInput.value = "";
@@ -4395,6 +2577,8 @@ async function removeAllCats() {
   toast(`Removed ${count} manual ${plural(count, "cat")}.`, "success");
 }
 
+/* Autosave runs before analysis and before the empty-board early return, so
+   Validate always preserves the same recovery point as Solve. */
 function validateBoard() {
   if (isSolving) return;
   autosaveBoard();
@@ -4713,6 +2897,10 @@ function bindEvents() {
    Start
    ------------------------------------------------------------------ */
 
+/* Startup order matters: apply the theme, build the palette and board from the
+   current state, bind events, render derived panels, then offer autosave
+   recovery. Recovery applies data through the same validated path as imports
+   and named saves. */
 function init() {
   applyTheme(theme, { persist: false });
   buildPalette();
@@ -4730,6 +2918,3 @@ function init() {
 init();
 
 })();
-</script>
-</body>
-</html>
