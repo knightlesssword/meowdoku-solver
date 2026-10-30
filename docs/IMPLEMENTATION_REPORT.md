@@ -325,3 +325,6 @@ Implemented `.github/workflows/deploy-pages.yml` in `6cb94a4`:
 - `dcaca9f` docs(project): record phase 5 documentation validation
 - `850ed24` docs(project): remove local workspace path from baseline
 - `6cb94a4` ci(pages): publish the static app to gh-pages
+- `27bb0f1` chore(repo): link private vulnerability reporting
+- `443f4d8` docs(release): record verified GitHub Pages deployment
+- `b350cb4` docs(release): record the post-documentation deployment no-op
