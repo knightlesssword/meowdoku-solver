@@ -137,9 +137,45 @@ No Critical or High finding remains in the reviewed scope. Accepted items (resto
 
 ### Not yet covered (scheduled later)
 
-- Figma branding integration and final visual review (Phase 4).
-- User-facing documentation, including storage and export guidance (Phase 5).
+- README rewrite, including the final brand hero, and user-facing storage/export guidance (Phase 5).
 - GitHub Actions permissions, action pinning, Pages deployment, and live URL verification (Phase 6).
+
+## Phase 4 - Branding and design
+
+Source integration committed as `f73f32c`. The asset inventory, safety review, and usage rules are recorded in `docs/BRAND.md`.
+
+### Assets found
+
+| File | Dimensions | Size | Use |
+|---|---|---:|---|
+| `assets/branding/app-icon.svg` | 256 × 256 | 1,394 bytes | Header mark and favicon |
+| `assets/branding/logo-horizontal.svg` | 940 × 260 | 13,123 bytes | Light-surface wordmark for README/documentation |
+
+These are the actual supplied filenames. No placeholder assets were created, renamed, overwritten, or duplicated.
+
+### Safety review
+
+Both SVGs are self-contained vector artwork built from fixed-fill `<rect>`, `<path>`, and `<ellipse>` elements. The scan found no scripts, event attributes, `foreignObject`, `<image>`, `<use>`, `<style>`, CSS `url()`, `@import`, XML entities, embedded data, or external references. The wordmark is outlined paths, so it requires no external font. Both files are served with `Content-Type: image/svg+xml` over HTTP 200 and load from `file://`.
+
+### Integration
+
+1. **Favicon.** The previous encoded data-URI favicon was replaced by `<link rel="icon" type="image/svg+xml" href="assets/branding/app-icon.svg">`. The local file is the supplied 256 × 256 icon.
+2. **Header.** The inline placeholder cat SVG was replaced by the supplied icon as an `<img>` with explicit 42 × 42 dimensions, empty alt text because the adjacent `<h1>` names the app, and a 36 × 36 size at 720 px and below. A drop-shadow follows the icon's alpha edge so it remains distinct on the cream light theme without a rectangular frame.
+3. **Wordmark.** The horizontal wordmark was inspected on light and dark surfaces. Its cocoa `#68452F` wordmark and muted `#8C6A50` tagline lose contrast on the dark app background. The compact header therefore keeps theme-aware text next to the icon; the wordmark is documented for light-surface README/documentation use. The final README hero is Phase 5.
+4. **Existing refinements preserved.** The header still has only the fixed `Meowdoku Solver` title, with no context line. The palette remains twelve colours in a 6 / 4 / 3 grid with Paint / Erase / Cat modes and no bottom erase button.
+
+### Verification evidence
+
+| Scenario | Evidence | Result |
+|---|---|---|
+| SVG source scan | Both files checked for scripts, handlers, external refs, embedded data, CSS URLs, and entities | Safe; no flags |
+| Asset geometry | Natural image dimensions | 256 × 256 and 940 × 260; wordmark ratio preserved |
+| Header/favicon matrix | Dark/light at 1281/768/390 px; icon size, alt, overflow, palette, modes | 6 / 6 pass |
+| Local file loading | `file:///D:/blep/FSProjects/cat-puzzle-solver/index.html` | Icon loads at 256 × 256; no page or console errors |
+| Full browser regressions | Phase 2 core, autosave, `file://`, blocked storage | 19 / 19, 9 / 9, pass, pass |
+| Phase 3 suite rerun | Keyboard, security, solver matrix, inconclusive, autosave failure, controls, scroll focus | 13 / 13, 10 / 10, 11 / 11, pass, 5 / 5, 10 / 10, 4 / 4 |
+| Axe rerun | Empty board 4 scans; populated board/dialogs 18 scans | Zero violations |
+| Visual rerun | Full renders, dark/light, 1281/768/390 px | No overflow; header icon legible in both themes |
 
 ## Commit log
 
@@ -150,3 +186,4 @@ No Critical or High finding remains in the reviewed scope. Accepted items (resto
 - `dfa3b26` docs(project): record phase 2 extraction verification
 - `a225358` fix(app): clear stale autosave on write failure
 - `0a02580` fix(a11y): make scrollable panels keyboard accessible
+- `f73f32c` feat(branding): use supplied app icon in header and favicon

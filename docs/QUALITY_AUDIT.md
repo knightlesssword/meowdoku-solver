@@ -80,7 +80,7 @@ No unresolved Critical, High, or Medium finding is known after the fixes below.
 - **Severity:** Informational; accepted residual risk.
 - **Affected:** `index.html` document metadata.
 - **Behaviour:** The page has no CSP meta tag or response header. It retains one small inline theme bootstrap and an inline SVG sprite.
-- **Why accepted:** There is no backend to set headers, no untrusted HTML sink, no external script, font, image, analytics, or network request, and imports are validated before use. A useful CSP would need a hash or nonce for the bootstrap and careful testing of the data-URI favicon and same-document SVG references. Adding one is a deployment-phase hardening option, not a blocker for this local-first build.
+- **Why accepted:** There is no backend to set headers, no untrusted HTML sink, no external script, font, image, analytics, or network request, and imports are validated before use. A useful CSP would need a hash or nonce for the bootstrap and careful testing of the local SVG favicon and same-document SVG references. Adding one is a deployment-phase hardening option, not a blocker for this local-first build.
 - **Revisit in:** Phase 6 hosting hardening, with browser verification of the theme bootstrap and icons.
 
 ### A-04 - Browser storage is not confidential or durable
@@ -169,7 +169,7 @@ Validation completes before confirmation or state mutation. Fourteen malformed-s
 ### SVG and asset safety
 
 - `assets/branding/app-icon.svg` and `logo-horizontal.svg` contain no scripts, event-handler attributes, external references, `<foreignObject>`, embedded images, entities, `@import`, or `url(...)`.
-- The inline SVG sprite has no script or external reference. The favicon is a static data URI. Assets are not yet integrated into the page; Phase 4 must preserve these clean properties.
+- The inline SVG sprite has no script or external reference. Phase 4 replaced the static data-URI favicon with the supplied local `assets/branding/app-icon.svg` and uses that same icon as a decorative header `<img>`; both paths stay inside the repository. The Phase 4 re-scan preserved the clean asset properties recorded here.
 - No untrusted SVG markup is inserted with `innerHTML`.
 
 ### Resource exhaustion and solver integrity

@@ -168,7 +168,7 @@ All three fixes were followed by the full regression run listed above. No unrela
 
 ## Pass / fail / blocked
 
-- **Passed:** every executed static, browser, security, solver, keyboard, visual, and accessibility check listed above.
+- **Passed:** every executed static, browser, security, solver, keyboard, visual, branding, and accessibility check listed above and in the Phase 4 section below.
 - **Failed:** none in the final run.
 - **Blocked / not executed:** real screen-reader testing, Firefox/Safari, physical touch devices, low-end performance profiling, and GitHub Actions security review. Reasons are recorded in `docs/QUALITY_AUDIT.md` (D-01 through D-04).
 
@@ -182,5 +182,34 @@ All three fixes were followed by the full regression run listed above. No unrela
 6. **Cap path uses a patched clock.** The `Search inconclusive` fixture temporarily replaced `performance.now` in the test page to force the time limit deterministically. Application code was not modified for that test.
 7. **Temporary harness.** Playwright/axe scripts live outside version control, so another tester must recreate them or inspect the recorded commands and outcomes. No runtime dependency was added to the project.
 8. **Storage blocking is emulated.** The blocked-storage case used an init script that makes the `localStorage` getter throw; it was not tested in every browser's private mode.
-9. **No CSP test.** No Content Security Policy is present, so none was exercised. If Phase 6 adds one, the inline theme bootstrap, data-URI favicon, SVG `<use>` references, and downloads must be retested.
+9. **No CSP test.** No Content Security Policy is present, so none was exercised. If Phase 6 adds one, the inline theme bootstrap, local SVG favicon, inline SVG `<use>` references, and downloads must be retested.
 10. **Workflow checks are deferred.** There is no GitHub Actions workflow to test until Phase 6; least-privilege permissions and action SHA pinning remain a release gate.
+
+## Phase 4 branding checks (2026-10-30)
+
+Source integration: `f73f32c` (`feat(branding): use supplied app icon in header and favicon`). Asset and usage record: `docs/BRAND.md`.
+
+Commands:
+
+```powershell
+node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-asset-review.js
+node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-branding.js
+node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-file-check.js
+node C:\Users\abuba\AppData\Local\Temp\opencode\phase4-wordmark.js
+```
+
+| Check | Result |
+|---|---|
+| SVG safety scan | Both assets have no script, event handlers, `foreignObject`, `<image>`, `<use>`, `<style>`, CSS `url()`, `@import`, entities, embedded data, or external references |
+| Asset geometry | `app-icon.svg` is 256 × 256 (1:1); `logo-horizontal.svg` is 940 × 260 and keeps that ratio |
+| HTTP delivery | Both assets returned HTTP 200 with `Content-Type: image/svg+xml` |
+| Header and favicon | 6 / 6 checks passed across dark/light themes and 1281/768/390 px: icon loads at 42 px (36 px mobile), `alt=""`, no header or page overflow |
+| Local file use | `file:///D:/blep/FSProjects/cat-puzzle-solver/index.html` loaded the icon at 256 × 256 with no page or console errors |
+| Core regression rerun | 19 / 19 pass |
+| Autosave regression rerun | 9 / 9 pass |
+| `file://` and blocked-storage reruns | Both pass |
+| Keyboard, security, solver, inconclusive, autosave-failure, controls, scroll-focus reruns | 13 / 13, 10 / 10, 11 / 11, pass, 5 / 5, 10 / 10, 4 / 4 |
+| Axe rerun | Empty board 4 / 4 scans with zero violations; populated board/dialog matrix 18 / 18 scans with zero violations |
+| Full-page visual rerun | Dark/light at 1281, 768, and 390 px; no overflow; header icon legible on both themes |
+
+The horizontal wordmark was inspected on light and dark surfaces. Its cocoa wordmark and muted tagline lose contrast on the dark app background, so it is documented as a light-surface asset. The app header uses the icon with theme-aware text instead. README creation and the final hero choice remain Phase 5 work.
