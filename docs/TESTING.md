@@ -1,7 +1,7 @@
 # Meowdoku Solver - Test Report
 
 - **Test date:** 2026-10-30
-- **Scope:** Phase 3 security, solver, UI, and accessibility audit plus fixes; Phase 4 branding rerun; Phase 5 documentation validation; Phase 6 GitHub Pages publication and live smoke tests; post-release cat-icon grid layout fix.
+- **Scope:** Phase 3 security, solver, UI, and accessibility audit plus fixes; Phase 4 branding rerun; Phase 5 documentation validation; Phase 6 GitHub Pages publication and live smoke tests; post-release cat-icon grid layout fix; post-release UI refinement.
 - **Status:** All executed suites passed after fixes. No test remains failing. Deferred coverage is listed at the end.
 - **Detailed findings:** `docs/QUALITY_AUDIT.md`. Phase-by-phase execution history: `docs/IMPLEMENTATION_REPORT.md`.
 
@@ -168,7 +168,7 @@ All three fixes were followed by the full regression run listed above. No unrela
 
 ## Pass / fail / blocked
 
-- **Passed:** every executed static, browser, security, solver, keyboard, visual, branding, accessibility, documentation, workflow, and live-site check listed above and in the Phase 4, Phase 5, and Phase 6 sections.
+- **Passed:** every executed static, browser, security, solver, keyboard, visual, branding, accessibility, documentation, workflow, live-site, and UI-refinement check listed above and in the Phase 4, Phase 5, Phase 6, and UI refinement sections.
 - **Failed:** none in the final run.
 - **Blocked / not executed:** real screen-reader testing, Firefox/Safari, physical touch devices, and low-end performance profiling. The GitHub Actions security review is resolved in Phase 6 (D-01); the remaining deferred items are D-02 through D-04 in `docs/QUALITY_AUDIT.md`.
 
@@ -212,7 +212,7 @@ node $env:TEMP\opencode\phase4-wordmark.js
 | Axe rerun | Empty board 4 / 4 scans with zero violations; populated board/dialog matrix 18 / 18 scans with zero violations |
 | Full-page visual rerun | Dark/light at 1281, 768, and 390 px; no overflow; header icon legible on both themes |
 
-The horizontal wordmark was inspected on light and dark surfaces. Its cocoa wordmark and muted tagline lose contrast on the dark app background, so it is documented as a light-surface asset. The app header uses the icon with theme-aware text instead. The Phase 5 README uses the icon-and-heading hero plus the two actual screenshots below.
+The Phase 4 header used the app icon with theme-aware text. The later UI refinement replaces that header with the horizontal wordmark on a cream plate; the current checks are in the UI refinements section below. The README still uses the icon-and-heading hero.
 
 ## Phase 5 documentation checks (2026-10-30)
 
@@ -234,8 +234,8 @@ The two README screenshots were captured from the running app at `http://127.0.0
 
 | File | Dimensions | Bytes | State |
 |---|---:|---:|---|
-| `assets/screenshots/workspace-dark.png` | 1281 × 1388 | 143,059 | 6 × 6 fixture, 2 manual cats, 4 candidates, `Unique solution`, `Step 1 of 4` |
-| `assets/screenshots/workspace-light.png` | 1281 × 1388 | 145,826 | Same board and result in the light theme |
+| `assets/screenshots/workspace-dark.png` | 1281 × 1391 | 138,481 | 6 × 6 fixture, 2 manual cats, 4 candidates, `Unique solution`, `Step 1 of 4` |
+| `assets/screenshots/workspace-light.png` | 1281 × 1391 | 143,065 | Same board and result in the light theme |
 
 The capture run reported no horizontal overflow, no page errors, and no console errors. Both images were opened and visually inspected before being referenced by the README.
 
@@ -252,7 +252,7 @@ The capture run reported no horizontal overflow, no page errors, and no console 
 | JavaScript syntax | Pass |
 | Static HTML/CSS/JS inventory | 80 unique IDs; no duplicate IDs, inline handlers, or external references |
 | Core browser smoke rerun | 19 / 19 pass |
-| Source screenshots | 1281 × 1388 natural dimensions; HTTP 200 with `image/png`; both load from `assets/screenshots/` |
+| Source screenshots | 1281 × 1391 natural dimensions; HTTP 200 with `image/png`; both load from `assets/screenshots/` |
 | Screenshot metadata | PNG chunks are `IHDR`, `sRGB`, `IDAT`, and `IEND` only; no `tEXt`, `iTXt`, `zTXt`, or `eXIf` metadata |
 
 ### Documentation accuracy review
@@ -291,9 +291,10 @@ The user-facing documents were checked against `js/app.js` and `index.html` for:
 | Manual workflow run | `41068782251`, success; no new deployment commit because the artifact was unchanged |
 | Post-documentation push run | `41069865740`, success; no new deployment commit; `gh-pages` remained at `7f3fc83` |
 | Cat-icon fix deploy run | `41073235011`, success; app commit `4c69130` |
-| `gh-pages` commits | Initial `7f3fc83`; cat-icon fix `0a57cf3` (parent `7f3fc83`) |
-| `gh-pages` files | `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg` |
-| Pages builds | `1327302791` and `1327376367`, both status `built` |
+| UI refinement deploy run | `41083159875`, success; app commit `53be676` |
+| `gh-pages` commits | Initial `7f3fc83`; cat-icon fix `0a57cf3`; UI refinement `f857d8e` |
+| `gh-pages` files | `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, `assets/branding/logo-horizontal.svg` |
+| Pages builds | `1327302791`, `1327376367`, and `1327518875`, all status `built` |
 | Pages source | `gh-pages`, path `/`, build type `legacy`, HTTPS enforced |
 | Public URL | <https://knightlesssword.github.io/meowdoku-solver/> |
 
@@ -302,9 +303,9 @@ The user-facing documents were checked against `js/app.js` and `index.html` for:
 - `.github/workflows/deploy-pages.yml` parsed as valid YAML with Python's YAML loader.
 - `actions/checkout` is pinned to `3d3c42e5aac5ba805825da76410c181273ba90b1` (v7.0.1), resolved from the official release and verified through the GitHub API.
 - The workflow requests only `contents: write`, runs only for `refs/heads/main`, uses the `pages` concurrency group, and has a 10-minute timeout.
-- The runtime artifact stage asserts exactly five files and prints the list.
+- The runtime artifact stage asserts exactly six files and prints the list.
 - A local Git Bash simulation of the publish shell created an initial `gh-pages` commit and then appended a second commit with the first as its parent. The second clone showed both commits, the updated file, and the marker change.
-- The real workflow's first run created `gh-pages`; the manual dispatch fetched and inspected the existing branch and exited without a commit. The cat-icon fix then produced a real second deployment commit `0a57cf3` on top of `7f3fc83`, confirming the live append path.
+- The real workflow's first run created `gh-pages`; the manual dispatch fetched and inspected the existing branch and exited without a commit. The cat-icon fix then produced a real second deployment commit `0a57cf3` on top of `7f3fc83`, and the UI refinement produced `f857d8e` on top of that, confirming the live append path twice.
 
 ### HTTP checks
 
@@ -315,6 +316,7 @@ The user-facing documents were checked against `js/app.js` and `index.html` for:
 | `/css/style.css` | 200 | `text/css; charset=utf-8` |
 | `/js/app.js` | 200 | `application/javascript; charset=utf-8` |
 | `/assets/branding/app-icon.svg` | 200 | `image/svg+xml` |
+| `/assets/branding/logo-horizontal.svg` | 200 | `image/svg+xml` |
 | `/.nojekyll` | 200 | `application/octet-stream` |
 | `/docs/` | 404 | Not deployed |
 | `/README.md` | 404 | Not deployed |
@@ -334,7 +336,7 @@ node $env:TEMP\opencode\phase6-live-cat-layout.js
 
 | Suite | Checks | Result |
 |---|---|---:|
-| Live initialization and solve | HTTPS origin, title, `h1`, 64 cells, 12 palette colours, 3 modes, 256 × 256 header icon, relative favicon, grid role, import 6 × 6 fixture, 2 cats, 36 painted cells, `Unique solution`, 4 candidates, `Step 1 of 4`, next/apply enabled, theme persistence, 390 px layout with 3 palette columns and no overflow | Pass |
+| Live initialization and solve | HTTPS origin, title, `h1`, 64 cells, 12 palette colours, 3 modes, 940 × 260 header wordmark, relative favicon, grid role, import 6 × 6 fixture, 2 cats, 36 painted cells, `Unique solution`, 4 candidates, `Step 1 of 4`, next/apply enabled, theme persistence, 390 px layout with 3 palette columns and no overflow | Pass |
 | Live editing and autosave | Resize to 4 × 4, paint, erase, cat, Validate, `meowdoku:autosave:v1` written, diagnostics reported the expected rule violation | Pass |
 | Live save/load and help | Named save under `cat-solver:Live Save Test`, reload, load dialog item, restore 16 painted cells, help dialog opens, Escape closes and restores help-button focus | Pass |
 | Live export | Download name `Live-Export-Test.json`, version 2, 8 × 8, 64 cells, no `maxRegion`, expected keys | Pass |
@@ -351,4 +353,55 @@ The live tests used the same temporary Playwright/Chromium harness as Phase 3, p
 4. **No performance profile.** Low-end hardware and long sessions were not measured.
 5. **No committed CI test suite.** The workflow validates syntax and publishes; it does not run the browser/axe suites. The harness remains outside version control.
 6. **No branch protection or environment approval.** The repository relies on maintainer account security and the main-only workflow guard.
-7. **Deployment history is two commits.** The live cat-icon fix appended `0a57cf3` to `7f3fc83` without a force-push or orphan replacement, so the non-destructive append path is now verified on the real branch. Only one content-changing deployment has been exercised.
+7. **Deployment history is three commits.** The cat-icon fix and UI refinement appended `0a57cf3` and `f857d8e` without a force-push or orphan replacement, so the non-destructive append path is verified twice on the real branch.
+
+## UI refinements (post-release, 2026-10-30)
+
+### Changed
+
+- Centered the supplied horizontal wordmark in the header on a cream contrast plate; the status pill, theme, and help controls remain top-right.
+- Moved **File** beside **Clear board** in the puzzle-canvas header.
+- Moved the three-rule summary under the **Puzzle canvas** heading and removed the old explanatory sentence.
+- Removed the four sidebar subtitles: live structural checks, "only placements common…", "Solve to calculate", and "board edits and solver activity".
+- Replaced the footer legal/status lines with **Made with ❤️ by knightlesssword**, linking to the GitHub profile. The storage and solver-cap information now lives in the help dialog.
+- Kept **Validate** because it writes the dedicated autosave recovery point and records validation in history; live diagnostics alone do not autosave.
+- Increased Undo/Redo to 38 px height, 13 px text, and Solve puzzle to 44 px height, 14 px text.
+- **Place this cat** now recomputes the remaining deductions automatically, so **Next step** stays available without pressing Solve again.
+
+### Commands
+
+```powershell
+node $env:TEMP\opencode\phase7-ui-redesign.js
+node $env:TEMP\opencode\phase7-header-breakpoints.js
+node $env:TEMP\opencode\phase7-file-menu-validate.js
+node $env:TEMP\opencode\phase7-screenshots.js
+```
+
+### Results
+
+| Check | Result |
+|---|---|
+| Header wordmark | Natural 940 × 260; rendered 250 px on desktop and 150 px on mobile; center delta 0 px; cream plate `#F4E8D4` |
+| Breakpoint matrix | 1281, 1120, 821, 820, 768, 720, 430, 390, and 320 px: no header overlap, header/page overflow, or File/Clear overflow |
+| Header controls | Status pill top-right at desktop; theme/help remain accessible when the pill hides below 820 px |
+| File menu | Opens at desktop and 390 px, stays inside the viewport, closes on Escape, restores File focus |
+| Rules placement | The three-rule summary renders under **Puzzle canvas**; the old sentence is absent |
+| Sidebar subtitles | All four removed; the candidate subtitle stays empty until a solver result exists |
+| Footer | Renders "Made with ❤️ by knightlesssword"; link resolves to `https://github.com/knightlesssword` |
+| Button sizing | Undo/Redo 38 px high with 13 px text; Solve puzzle 44 px high with 14 px text |
+| Help dialog | Includes "Saved puzzles stay in this browser" and the 20,000-solution / 3 s cap |
+| Validate | Present; a painted board wrote `meowdoku:autosave:v1` and added a validation history entry |
+| Forced-step flow | Applying step 1 of 4 recomputed to step 1 of 3; Next step and Place this cat remained enabled |
+| Regression suites | Core 19 / 19, keyboard 13 / 13, controls 10 / 10, solver matrix 11 / 11 |
+| Axe, populated/dialog | 18 / 18 scans, zero violations; live HTTPS rerun also 18 / 18 |
+| Axe, empty board | 4 / 4 scans, zero violations |
+| Screenshots | Dark/light README captures regenerated at 1281 × 1391; no console errors |
+| Live deployment | `53be676` → `gh-pages` `f857d8e`; workflow run `41083159875`; Pages build `1327518875`; live UI test passed at 1281 px and 390 px |
+
+The first axe run after the footer change found `link-in-text-block` on the footer link because its color alone did not distinguish it. The link was given a visible underline; both axe matrices then passed at zero violations.
+
+### Remaining UI limitations
+
+- The wordmark header and all UI checks used Chromium only.
+- The footer link opens GitHub in a new tab; it was not exercised through a real external browser session.
+- The screenshots are manually inspected, not a pixel-diff baseline.

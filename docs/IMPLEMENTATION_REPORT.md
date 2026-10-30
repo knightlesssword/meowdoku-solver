@@ -147,8 +147,8 @@ Source integration committed as `f73f32c`. The asset inventory, safety review, a
 
 | File | Dimensions | Size | Use |
 |---|---|---:|---|
-| `assets/branding/app-icon.svg` | 256 × 256 | 1,394 bytes | Header mark and favicon |
-| `assets/branding/logo-horizontal.svg` | 940 × 260 | 13,123 bytes | Light-surface wordmark for README/documentation |
+| `assets/branding/app-icon.svg` | 256 × 256 | 1,394 bytes | Favicon |
+| `assets/branding/logo-horizontal.svg` | 940 × 260 | 13,123 bytes | Header wordmark and light-surface documentation |
 
 These are the actual supplied filenames. No placeholder assets were created, renamed, overwritten, or duplicated.
 
@@ -202,7 +202,7 @@ Phase 5 replaces the old prompt-pack README with user-facing documentation and a
 - `docs/BRAND.md`: final README hero note and clarification that the screenshots are app captures, not converted logo files.
 - `docs/IMPLEMENTATION_REPORT.md`: this phase record.
 
-The README hero uses the supplied app icon with a normal heading because the raw brown wordmark is low-contrast on the dark app background. The two screenshots are actual captures from the running app, saved under `assets/screenshots/`. They are 1281 × 1388 and show the same 6 × 6 fixture in dark and light themes, with two manual cats, four candidates, a unique-solution result, and `Step 1 of 4`.
+The README hero uses the supplied app icon with a normal heading because the raw brown wordmark is low-contrast on the dark app background. The two screenshots are actual captures from the running app, saved under `assets/screenshots/`. They are 1281 × 1391 and show the same 6 × 6 fixture in dark and light themes, with two manual cats, four candidates, a unique-solution result, and `Step 1 of 4`.
 
 ### Templates
 
@@ -212,7 +212,7 @@ The existing `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `conf
 
 | Check | Evidence | Result |
 |---|---|---|
-| Screenshot capture | Temporary Playwright run against `http://127.0.0.1:8765/` | 2 actual captures; 1281 × 1388; 2 cats, 4 candidates, unique solution; no overflow or console errors |
+| Screenshot capture | Temporary Playwright run against `http://127.0.0.1:8765/` | 2 actual captures; 1281 × 1391; 2 cats, 4 candidates, unique solution; no overflow or console errors |
 | Internal links and images | Temporary Markdown link/anchor checker | 33 files, 28 relative targets, 0 missing, 0 unbalanced fences |
 | External links | `curl.exe` checks for public links | 12 / 12 returned HTTP 200 |
 | Pages target | `https://knightlesssword.github.io/meowdoku-solver/` | HTTP 404 at Phase 5 time; Phase 6 deployed it and the live URL now returns HTTP 200 |
@@ -220,7 +220,7 @@ The existing `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, `conf
 | JavaScript syntax | `node --check js/app.js` | Pass |
 | Static HTML/CSS/JS inventory | Temporary static checker | 80 unique IDs; no duplicate IDs, inline handlers, or external references |
 | Core browser smoke rerun | Phase 2 core suite | 19 / 19 pass |
-| Source screenshots | Natural dimensions and visual inspection | 1281 × 1388; both themes legible; no private data |
+| Source screenshots | Natural dimensions and visual inspection | 1281 × 1391; both themes legible; no private data |
 
 ### Accuracy decisions
 
@@ -263,7 +263,7 @@ Implemented `.github/workflows/deploy-pages.yml` in `6cb94a4`:
 - Concurrency: `pages` group, `cancel-in-progress: false`.
 - Action: `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1` (`v7.0.1`), pinned and verified through the GitHub API.
 - Validation: required runtime files exist and `node --check js/app.js` passes.
-- Artifact: `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, and `.nojekyll`, exactly five files.
+- Artifact: `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, `assets/branding/logo-horizontal.svg`, and `.nojekyll`, exactly six files after the header wordmark was added.
 - Publish: fetch the existing `gh-pages` branch, append a normal commit, and `git push origin HEAD:gh-pages`. An orphan branch is created only when the branch is absent.
 - Safety: no force-push, no destructive orphan replacement of an existing branch, no PR code deployment, and no recursive `gh-pages` trigger.
 - The branch-update shell was simulated locally twice: the first run created an initial commit, and the second appended a second commit with the first as its parent.
@@ -276,10 +276,11 @@ Implemented `.github/workflows/deploy-pages.yml` in `6cb94a4`:
 | Manual workflow run | `41068782251`, success, no-op because the artifact was unchanged |
 | Post-documentation push run | `41069865740`, success, no-op; `gh-pages` remained at `7f3fc83` |
 | Cat-icon fix deploy run | `41073235011`, success, commit `4c69130` |
-| `gh-pages` commits | Initial `7f3fc83`; cat-icon fix `0a57cf3` (parent `7f3fc83`) |
-| `gh-pages` files | `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg` |
+| UI refinement deploy run | `41083159875`, success, commit `53be676` |
+| `gh-pages` commits | Initial `7f3fc83`; cat-icon fix `0a57cf3`; UI refinement `f857d8e` |
+| `gh-pages` files | `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, `assets/branding/logo-horizontal.svg` |
 | Pages configuration | source `gh-pages`, path `/`, build type `legacy`, HTTPS enforced |
-| Pages builds | `1327302791` and `1327376367`, both status `built` |
+| Pages builds | `1327302791`, `1327376367`, and `1327518875`, all status `built` |
 | Public URL | <https://knightlesssword.github.io/meowdoku-solver/> |
 | HTTP checks | `/`, HTML, CSS, JS, SVG, and `.nojekyll` all HTTP 200 with expected types |
 
@@ -306,7 +307,7 @@ Implemented `.github/workflows/deploy-pages.yml` in `6cb94a4`:
 - Firefox, Safari, real screen readers, physical touch devices, and low-end performance remain unverified.
 - The workflow validates syntax and publishes but does not run the browser/axe suites.
 - No branch protection or GitHub environment approval gate is configured.
-- The live `gh-pages` history is two commits; the cat-icon fix appended normally on top of the initial deployment.
+- The live `gh-pages` history is three commits; both later deployments appended normally on top of the previous one.
 - The temporary Playwright/axe harness remains outside version control.
 
 ## Post-release fix - Cat icons and grid tracks
@@ -328,7 +329,42 @@ A cat icon is an inline SVG from the shared sprite with no intrinsic size. Its `
 - Live site: the deployed `gh-pages` commit `0a57cf3` contains the fix; workflow run `41073235011` succeeded and Pages build `1327376367` completed.
 - Layout matrix: boards 4 × 4 through 10 × 10 at 1281 px and 390 px, each with one cat. The board stayed square, all cells in a board matched, row counts matched `n`, the cat computed `position: absolute` and stayed inside its cell, and no horizontal overflow appeared. 14 / 14 cases passed.
 - The change was followed by a full live smoke rerun of the core import/solve flow. No page or console errors were observed.
-- `gh-pages` now has two commits: `7f3fc83` then `0a57cf3`, confirming the non-destructive append path on the live branch.
+- The cat-icon deployment produced `0a57cf3` on top of `7f3fc83`; the later UI refinement added `f857d8e`, so the live branch now has three commits.
+
+## Post-release UI refinements
+
+Deployed as `53be676` (`feat(ui): refresh header, canvas actions, and deduction flow`). Workflow run `41083159875` succeeded; `gh-pages` appended `f857d8e`, and Pages build `1327518875` completed.
+
+Source changes:
+
+- Centered `assets/branding/logo-horizontal.svg` in the header on a cream `#F4E8D4` plate. The file is now part of the required Pages artifact; `app-icon.svg` remains the favicon.
+- Kept the status pill, theme, and help controls top-right. Moved **File** beside **Clear board** in the puzzle-canvas header.
+- Moved the three-rule summary under **Puzzle canvas** and removed the old explanatory sentence.
+- Removed the four sidebar subtitles: live structural checks, "only placements common…", "Solve to calculate", and "board edits and solver activity".
+- Replaced the footer legal/status lines with a heart-credit link to the GitHub profile. The local-first and solver-cap text now appears in the help dialog.
+- Kept **Validate** because it writes the dedicated autosave key and records validation history; live diagnostics do not autosave.
+- Increased Undo/Redo to 38 px / 13 px and Solve puzzle to 44 px / 14 px.
+- `applyStep()` now calls `solve()` after placing a forced cat, so the remaining deductions refresh automatically.
+
+### UI verification
+
+| Check | Result |
+|---|---|
+| Header breakpoints | 1281, 1120, 821, 820, 768, 720, 430, 390, and 320 px: no overlap, header/page overflow, or File/Clear overflow |
+| Header wordmark | 940 × 260 natural; centered exactly; cream plate on both themes; 250 px desktop / 150 px mobile |
+| File menu | In-viewport at desktop and 390 px; Escape closes and restores focus |
+| Removed copy | Old canvas sentence and all four sidebar subtitles absent |
+| Footer | Heart credit renders and links to `https://github.com/knightlesssword` |
+| Buttons | Undo/Redo 38 px high, 13 px text; Solve 44 px high, 14 px text |
+| Help | Contains the moved local-first and solver-cap text |
+| Validate | Autosave key written and validation history entry added on a painted board |
+| Forced step | Apply step 1 of 4 → recomputed step 1 of 3; Next/apply remained enabled |
+| Regressions | Core 19 / 19; keyboard 13 / 13; controls 10 / 10; solver matrix 11 / 11 |
+| Axe | 18 / 18 populated/dialog scans and 4 / 4 empty-board scans locally; live HTTPS populated/dialog rerun 18 / 18; zero violations |
+| Screenshots | Dark/light README captures regenerated at 1281 × 1391 |
+| Live deployment | `53be676` → `gh-pages` `f857d8e`; workflow run `41083159875`; Pages build `1327518875`; live UI test passed at 1281 px and 390 px |
+
+The first axe pass after the footer change found `link-in-text-block` on the unlinked-style credit; adding a visible underline resolved it. The deployment workflow was updated to validate, stage, and publish both branding SVGs (six files including `.nojekyll`), and the live artifact now includes both.
 
 ## Commit log
 
@@ -353,3 +389,4 @@ A cat icon is an inline SVG from the shared sprite with no intrinsic size. Its `
 - `6bd1b71` docs(release): complete the phase 6 commit log
 - `0e284da` docs(deploy): verify the published artifact allowlist
 - `4c69130` fix(board): keep cat icons from stretching grid cells
+- `53be676` feat(ui): refresh header, canvas actions, and deduction flow

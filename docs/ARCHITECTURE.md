@@ -52,6 +52,7 @@ The stylesheet is organized around tokens and components:
 - **Design tokens.** Dark is the default theme. `:root[data-theme="light"]` overrides the colour, surface, border, focus, and shadow tokens.
 - **Layout.** `.app-shell` max-width, a two-column `.workspace` with a flexible stage and a sidebar, and a stacking breakpoint at 1120 px.
 - **Components.** Header, status pill, buttons, segmented mode control, setup bar, board frame and rulers, palette, diagnostics, deduction cards, candidate lists, history, dialogs, toasts, footer.
+- **Header and canvas actions.** The header centers the horizontal wordmark on a cream plate, with status/theme/help anchored top-right. The File menu and Clear board share the puzzle-canvas action row.
 - **Board cells.** Cat icons are absolutely positioned inside their cell and cells are allowed to shrink with `min-height: 0`, so an SVG without an intrinsic size cannot inflate a grid track or overlap later rows.
 - **Responsive rules.** Additional breakpoints at 820 px, 720 px, and 430 px adjust the header, setup bar, palette (6 / 4 / 3 columns), board gaps, and typography.
 - **Accessibility.** Visible `:focus-visible` outlines, a skip link, reduced-motion handling, and board sizing that keeps the grid usable at narrow widths.
@@ -119,7 +120,7 @@ Keeping these two modes explicit prevents a diagonal from accidentally connectin
 
 ### Change invalidation
 
-Any board edit or whole-board replacement invalidates derived solver results. `clearDerivedForBoardChange()` resets the solver, analysis cache, applied step, highlights, and solving state as appropriate, then refreshes the board and panels. Undo/redo restores only `cells` and `cats`; solver results are deliberately not restored and must be recomputed.
+Any board edit or whole-board replacement invalidates derived solver results. `clearDerivedForBoardChange()` resets the solver, analysis cache, applied step, highlights, and solving state as appropriate, then refreshes the board and panels. Undo/redo restores only `cells` and `cats`; solver results are deliberately not restored and must be recomputed. `applyStep()` is a board edit, so it immediately calls `solve()` to refresh the remaining deductions without requiring a second Solve click.
 
 Undo snapshots contain `cells` and `cats`. The undo stack is bounded at 100 entries; the activity history is separately bounded at 40 entries. A new edit clears the redo branch.
 

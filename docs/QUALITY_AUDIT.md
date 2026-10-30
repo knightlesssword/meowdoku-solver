@@ -1,10 +1,10 @@
 # Meowdoku Solver - Security, Solver, UI, and Accessibility Audit
 
 - **Audit date:** 2026-10-30.
-- **Scope:** Phase 3 audit of the working tree after Phase 2 (`dfa3b26`) plus the Phase 3 fixes, revalidated after the Phase 4 branding integration, Phase 5 documentation, and Phase 6 publication.
+- **Scope:** Phase 3 audit of the working tree after Phase 2 (`dfa3b26`) plus the Phase 3 fixes, revalidated after the Phase 4 branding integration, Phase 5 documentation, Phase 6 publication, and the post-release UI refinement.
 - **Auditor:** primary orchestrator, acting as the sole integration owner.
 - **Method:** source review, static scans, temporary Playwright/axe browser harness, and manual inspection of real Chromium renders. Test details and commands are in `docs/TESTING.md`.
-- **Overall result:** no known Critical or High issue remains in the reviewed scope. Three confirmed defects were fixed and regression-tested. The Phase 6 workflow and live Pages deployment were reviewed and verified without adding a finding. Accepted and deferred items are listed separately. This audit does not claim complete security or WCAG conformance.
+- **Overall result:** no known Critical or High issue remains in the reviewed scope. Four confirmed defects were fixed and regression-tested, including the UI-refinement footer link issue. The Phase 6 workflow and live Pages deployment were reviewed and verified. Accepted and deferred items are listed separately. This audit does not claim complete security or WCAG conformance.
 
 ## Findings summary
 
@@ -13,6 +13,7 @@
 | QA-01 | Medium | Accessibility | Fixed | The populated history panel became a scroll container without keyboard access or a visible focus target (`scrollable-region-focusable`). |
 | QA-02 | Medium | Accessibility | Fixed | At narrow widths the scrollable dialog body had no keyboard access (`scrollable-region-focusable`). |
 | QA-03 | Low | Persistence | Fixed | A failed autosave write left an older snapshot in storage, so reload could offer stale recovery data. |
+| QA-04 | Low | Accessibility | Fixed | The new footer credit link relied on color alone; axe flagged `link-in-text-block`. A visible underline resolved it. |
 | A-01 | Low | Persistence | Accepted | Restoring an autosave keeps the recovery key, so the prompt can reappear on later loads and can predate edits made after restore. |
 | A-02 | Informational | UI | Accepted | The solution count appears in the header, next-deduction panel, and candidate subtitle; each serves a different scope. |
 | A-03 | Informational | Security | Accepted | There is no Content Security Policy; the app has an inline theme bootstrap and no untrusted markup sinks. |
@@ -56,6 +57,16 @@ No unresolved Critical, High, or Medium finding is known after the fixes below.
 - **Evidence:** A seeded `meowdoku:autosave:v1` value remained after a forced `QuotaExceededError` until the failure path was changed. The regression test now confirms the key is `null`, validation still completes, and a reload shows no recovery prompt.
 - **Remediation:** Call `clearAutosave()` in the write catch block before emitting the existing one-time warning. `clearAutosave()` already swallows storage exceptions, so blocked storage remains non-blocking.
 - **Regression test:** Five checks in the temporary autosave-failure suite: old key removed, validation not blocked, warning not spammed on a second failure, no stale recovery after reload, and no console errors.
+
+### QA-04 - Footer credit link was distinguished by color alone
+
+- **Severity:** Low (accessibility).
+- **Affected:** `.app-footer a` in `css/style.css`.
+- **Preconditions:** The footer is visible; axe scans the page.
+- **Impact:** `link-in-text-block` flagged the link because its color contrast against the surrounding footer text was below 3:1 and it had no underline or other non-color distinction.
+- **Evidence:** The first populated/dialog axe run after the footer change reported the rule in all 18 scans; the empty-board matrix also carried the same markup.
+- **Remediation:** Added a visible 1 px underline with a 2 px offset. Hover color remains an enhancement, not the only distinction.
+- **Regression test:** Populated/dialog axe 18 / 18 and empty-board axe 4 / 4 passed with zero violations.
 
 ## Accepted findings
 
@@ -109,10 +120,10 @@ Phase 6 added `.github/workflows/deploy-pages.yml` in commit `6cb94a4`. The work
 - **Permissions:** only `contents: write` is requested, which the job needs to append to `gh-pages`. There is no `pages: write`, `id-token: write`, or unrelated scope.
 - **Action pin:** `actions/checkout` v7.0.1 is pinned to commit `3d3c42e5aac5ba805825da76410c181273ba90b1`. The SHA was resolved from the official release and verified through the GitHub API.
 - **Concurrency:** the `pages` group serializes runs with `cancel-in-progress: false`.
-- **Artifact allowlist:** only `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, and `.nojekyll` are staged. Documentation, templates, screenshots, tests, and local paths are excluded.
+- **Artifact allowlist:** only `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, `assets/branding/logo-horizontal.svg`, and `.nojekyll` are staged. Documentation, templates, screenshots, tests, and local paths are excluded.
 - **Branch safety:** the publish step creates an orphan `gh-pages` only when the branch does not exist. Otherwise it builds on the fetched branch and uses ordinary `git push origin HEAD:gh-pages`. It never uses `--force`, `--force-with-lease`, or a destructive orphan replacement.
 - **No secrets:** the built-in `GITHUB_TOKEN` is used through the checkout action's persisted credentials; no repository secret is configured or printed.
-- **Evidence:** push run `41068060948` succeeded for `6cb94a4`; manual run `41068782251` succeeded as a no-op. `gh-pages` was created at `7f3fc83` with five files. The later cat-icon fix deployed in run `41073235011` and appended `0a57cf3` on top of `7f3fc83` without a force-push. Pages builds `1327302791` and `1327376367` completed with status `built`, and the public URL returned HTTP 200. The live append confirms non-destructive history growth.
+- **Evidence:** push run `41068060948` succeeded for `6cb94a4`; manual run `41068782251` succeeded as a no-op. `gh-pages` was created at `7f3fc83`. The cat-icon fix deployed in `41073235011` and appended `0a57cf3`; the UI refinement deployed in `41083159875` and appended `f857d8e`. Pages builds `1327302791`, `1327376367`, and `1327518875` completed with status `built`, and the public URL returned HTTP 200. The live appends confirm non-destructive history growth.
 
 Residual deployment considerations: the repository has no environment approval gate or branch protection configured, and any future change to the workflow or Pages settings must be reviewed again. These are operational hardening items, not unresolved findings in the current release.
 
@@ -171,7 +182,7 @@ Validation completes before confirmation or state mutation. Fourteen malformed-s
 ### SVG and asset safety
 
 - `assets/branding/app-icon.svg` and `logo-horizontal.svg` contain no scripts, event-handler attributes, external references, `<foreignObject>`, embedded images, entities, `@import`, or `url(...)`.
-- The inline SVG sprite has no script or external reference. Phase 4 replaced the static data-URI favicon with the supplied local `assets/branding/app-icon.svg` and uses that same icon as a decorative header `<img>`; both paths stay inside the repository. The Phase 4 re-scan preserved the clean asset properties recorded here.
+- The inline SVG sprite has no script or external reference. Phase 4 replaced the static data-URI favicon with the supplied local `assets/branding/app-icon.svg`. The current header uses the supplied horizontal wordmark on a cream plate; both SVG paths stay inside the repository. The Phase 4 re-scan preserved the clean asset properties recorded here.
 - No untrusted SVG markup is inserted with `innerHTML`.
 
 ### Resource exhaustion and solver integrity
@@ -218,7 +229,7 @@ The inconclusive case required a temporary test-only `performance.now` patch to 
 - Additional keyboard scrolling: history and dialog body both respond to Page Down and show a 2 px focus outline.
 - Palette: exactly 12 colours, 6/4/3 equal-width columns at desktop/tablet/mobile, no clipped labels, no bottom erase swatch, and Paint/Erase/Cat modes remain.
 - Layout: boards 4-10 render the correct cells and ARIA counts; no horizontal page overflow at tested widths; 10 × 10 mobile cells measured 28 px with a 3-column palette.
-- Themes: dark and light rendered and inspected at 1281, 768, and 390 px. No clipped controls or overlap was seen. Title and `<h1>` are `Meowdoku Solver`; the old header context line is absent.
+- Themes: dark and light rendered and inspected at 1281, 768, and 390 px. No clipped controls or overlap was seen. The document title is `Meowdoku Solver` and the header `<h1>` gets that accessible name from the wordmark alt text; the old header context line is absent.
 - Controls: validate, solve, next step, place forced cat, candidate overlay, remove all cats, clear history, resize confirmation, clear board, save/load, import/export, file menu, theme, and help were exercised successfully.
 - Reduced motion collapses transitions and animations under `prefers-reduced-motion: reduce`.
 - Limitations: axe zero violations is not proof of WCAG conformance; colour contrast was machine-checked but not expert-reviewed; no real screen-reader or cross-browser pass was possible (D-02, D-03).
@@ -228,16 +239,16 @@ The inconclusive case required a temporary test-only `performance.now` patch to 
 ### Phase 4 branding
 
 - Both supplied SVGs were re-scanned after integration. They remain self-contained vectors with no scripts, event handlers, external references, embedded images, `<foreignObject>`, CSS `url()`, `@import`, or entities.
-- The favicon and decorative header `<img>` use a local repository path. Neither is injected as markup.
-- The brown horizontal wordmark is documented as a light-surface asset because it loses contrast on the dark app background. The app header uses the icon plus theme-aware text instead.
-- Header/favicon checks passed 6 / 6 across both themes and 1281/768/390 px, with no overflow. The full Phase 3 regression and axe reruns passed after the integration. Details are in `docs/TESTING.md`.
+- The favicon and header wordmark use local repository paths. Neither is injected as markup.
+- The brown horizontal wordmark is placed on a cream plate in the header so it stays legible on the dark theme. The raw wordmark is still not placed directly on the dark background.
+- Header/favicon checks passed 6 / 6 across both themes and 1281/768/390 px after the Phase 4 integration, with no overflow. The later centered-wordmark header was rechecked at 1281, 1120, 821, 820, 768, 720, 430, 390, and 320 px with no overlap or overflow. Details are in `docs/TESTING.md`.
 
 No new security, solver, or accessibility finding was introduced by the branding change.
 
 ### Phase 5 documentation
 
 - User-facing docs were written from the actual source and the recorded test evidence, not from the original prompt's assumptions. The checked claims are listed in `docs/TESTING.md`.
-- The README screenshots are real captures of the running app at 1281 × 1388. They contain only the sample puzzle, interface, and the committed brand artwork; no account, token, local path, or private browser data is visible.
+- The README screenshots are real captures of the running app at 1281 × 1391. They contain only the sample puzzle, interface, and the committed brand artwork; no account, token, local path, or private browser data is visible.
 - The documentation states that `localStorage` is unencrypted and clearable, that the browser evidence is Chromium-only, and that no WCAG or security certification is claimed. The Pages target was still unverified at Phase 5 time; Phase 6 later deployed and verified it.
 - Internal links, image paths, and heading anchors were checked with a temporary script: 33 Markdown files, 28 relative targets, zero missing targets, zero unbalanced code fences. Public non-Pages links returned HTTP 200 at check time. The Pages target returned 404 at Phase 5 time because Phase 6 had not deployed yet.
 - No secret, token, or personal data was added to the documentation or screenshots. The workflow-security review (D-01) was completed in Phase 6.
@@ -248,15 +259,28 @@ No new Critical, High, Medium, or Low finding was identified in the documentatio
 
 - **Repository:** public `knightlesssword/meowdoku-solver`; `main` pushed with all prior history preserved.
 - **Workflow:** `.github/workflows/deploy-pages.yml` at `6cb94a4`; `actions/checkout` pinned to the v7.0.1 commit; only `contents: write`; main-only; serialized by concurrency.
-- **Workflow runs:** push run `41068060948` succeeded for `6cb94a4`; manual `workflow_dispatch` run `41068782251` succeeded and produced no new deployment commit because the artifact was unchanged.
-- **Deployment branch:** `gh-pages` has two commits: initial `7f3fc83` and cat-icon fix `0a57cf3`, both containing only `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, and `assets/branding/app-icon.svg`.
-- **Pages configuration:** source `gh-pages`, path `/`, build type `legacy`, HTTPS enforced, status `built`; latest build `1327376367`.
+- **Workflow runs:** push run `41068060948` succeeded for `6cb94a4`; manual `workflow_dispatch` run `41068782251` succeeded and produced no new deployment commit because the artifact was unchanged. The cat-icon and UI deployments succeeded in `41073235011` and `41083159875`.
+- **Deployment branch:** `gh-pages` has three commits: initial `7f3fc83`, cat-icon fix `0a57cf3`, and UI refinement `f857d8e`. The current tree contains only `.nojekyll`, `index.html`, `css/style.css`, `js/app.js`, `assets/branding/app-icon.svg`, and `assets/branding/logo-horizontal.svg`.
+- **Pages configuration:** source `gh-pages`, path `/`, build type `legacy`, HTTPS enforced, status `built`; latest build `1327518875`.
 - **Public site:** <https://knightlesssword.github.io/meowdoku-solver/> returned HTTP 200. HTML, CSS, JavaScript, SVG, and `.nojekyll` returned HTTP 200 with the expected content types.
 - **Live smoke tests:** the deployed app initialized with 64 empty cells and 12 palette colours; paint, erase, cat, validate/autosave, import, solve, candidate overlay, forced-step controls, named save/load, export, theme switch, help dialog, and a 390 px layout all passed. No page or console errors were observed, all five initial requests were same-origin, and export omitted `maxRegion`.
 - **Post-release layout fix:** `4c69130` prevents the cat SVG from inflating a grid cell. The live 4 × 4 through 10 × 10 matrix at 1281 px and 390 px passed 14 / 14 cases: square board, uniform cell sizes, correct row count, absolutely positioned cat inside the cell, and no horizontal overflow.
 - **Private vulnerability reporting:** enabled on the repository and linked from `SECURITY.md` and the issue-template configuration.
 
 No new Critical, High, Medium, or Low finding was introduced by publication. The live site is now verified; the remaining gaps are the previously recorded compatibility, assistive-technology, performance, and temporary-harness limitations.
+
+## Post-release UI refinement review
+
+- The header now centers the supplied horizontal wordmark on a cream plate. The plate preserves wordmark contrast on the dark theme; the app icon remains the favicon. The status pill and theme/help controls remain top-right.
+- The File menu moved next to Clear board. It stays inside the viewport at 1281 px and 390 px, closes on Escape, and restores focus.
+- The three-rule summary moved under the canvas heading; the old explanatory sentence and four sidebar subtitles were removed without removing diagnostics, rules, or actionable hints.
+- The footer now contains only the heart credit and a GitHub profile link. The local-first and solver-cap text moved into the help dialog. The first axe pass found a color-only link distinction; a visible underline fixed QA-04.
+- Validate remains because it writes the autosave recovery point and records validation history. Live diagnostics alone do not autosave.
+- Undo/Redo and Solve targets were enlarged, and applying a forced cat now recomputes deductions automatically.
+- Verified at 1281, 1120, 821, 820, 768, 720, 430, 390, and 320 px with no header overlap or page overflow. The live forced-step test moved from step 1 of 4 to step 1 of 3 with Next/apply enabled.
+- Axe passed 18 / 18 populated/dialog scans and 4 / 4 empty-board scans after the link fix; the live HTTPS populated/dialog rerun also passed 18 / 18. Core, keyboard, controls, and solver regressions passed.
+
+No new unresolved finding remains from the UI refinement.
 
 ## Residual risks
 

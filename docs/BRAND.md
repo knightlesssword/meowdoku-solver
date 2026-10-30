@@ -8,8 +8,8 @@
 
 | File | Dimensions | View box | Size | Role |
 |---|---|---:|---:|---|
-| `assets/branding/app-icon.svg` | 256 × 256 (1:1) | `0 0 256 256` | 1,394 bytes | Standalone app icon; header mark and favicon |
-| `assets/branding/logo-horizontal.svg` | 940 × 260 (≈ 3.6:1) | `0 0 940 260` | 13,123 bytes | Horizontal wordmark for light-surface documentation and print use |
+| `assets/branding/app-icon.svg` | 256 × 256 (1:1) | `0 0 256 256` | 1,394 bytes | Standalone app icon; favicon |
+| `assets/branding/logo-horizontal.svg` | 940 × 260 (≈ 3.6:1) | `0 0 940 260` | 13,123 bytes | Centered header wordmark; light-surface documentation and print use |
 
 These are the actual exported filenames. The placeholder names `meowdoku-icon.svg` and `meowdoku-logo.svg` from the original brief were not supplied and do not exist.
 
@@ -28,15 +28,18 @@ Both files were inspected as source before integration.
 
 ### Header
 
-`index.html` uses the supplied icon directly:
+`index.html` uses the supplied horizontal wordmark as the header title:
 
 ```html
-<img class="brand-mark" src="assets/branding/app-icon.svg" alt="" width="42" height="42">
+<h1 class="brand">
+  <img class="brand-wordmark" src="assets/branding/logo-horizontal.svg"
+       alt="Meowdoku Solver" width="940" height="260">
+</h1>
 ```
 
-The icon is decorative because the adjacent `<h1>` already names the application. CSS renders it at 42 × 42 px on desktop/tablet and 36 × 36 px at 720 px and below. A two-layer `drop-shadow` filter follows the transparent alpha edge and keeps the cream tile legible on both themes without adding a rectangular CSS frame.
+The `<h1>` keeps the document heading semantic; the image's `alt` text supplies the accessible name. CSS renders the wordmark at `clamp(150px, 22vw, 250px)` wide and preserves its 940:260 ratio.
 
-The header title remains theme-aware text (`Meowdoku Solver`), so the brown wordmark is not forced onto the dark theme.
+The artwork sits on a cream `#F4E8D4` plate with 7 × 10 px padding and a 14 px radius (5 × 8 px at 720 px and below). The plate is intentional: the cocoa wordmark and muted tagline do not have enough contrast on the dark app background. The header itself is centered, while the status pill and theme/help controls stay anchored at the top right.
 
 ### Favicon
 
@@ -50,11 +53,11 @@ The icon is square and uses a 256 × 256 view box, so it scales cleanly as a bro
 
 ## Wordmark usage
 
-Use `assets/branding/logo-horizontal.svg` on light cream or white surfaces, where its cocoa wordmark and muted tagline have sufficient contrast. Preserve its 940:260 aspect ratio; do not stretch or crop it.
+Use `assets/branding/logo-horizontal.svg` in the app header on its cream plate, or on light cream/white documentation surfaces where its cocoa wordmark and muted tagline have sufficient contrast. Preserve its 940:260 aspect ratio; do not stretch or crop it.
 
-Do **not** place the raw wordmark on the dark app background. Its brown `#68452F` wordmark and `#8C6A50` tagline are low-contrast on `#0b1016`; the tagline in particular becomes difficult to read. On dark surfaces, use the app icon with theme-aware text instead.
+Do **not** place the raw wordmark directly on the dark app background. Its brown `#68452F` wordmark and `#8C6A50` tagline are low-contrast on `#0b1016`; the tagline in particular becomes difficult to read. The header plate solves that for the app; documentation should use a light surface.
 
-For a theme-safe README hero, prefer the icon plus a normal heading:
+For a theme-safe README hero, use the icon plus a normal heading:
 
 ```html
 <p align="center">
@@ -63,7 +66,7 @@ For a theme-safe README hero, prefer the icon plus a normal heading:
 <h1 align="center">Meowdoku Solver</h1>
 ```
 
-The horizontal wordmark can still be shown in a light-only documentation block, cover, or print context. If GitHub dark-mode support is required, keep the icon-and-heading pattern rather than relying on the brown wordmark alone. The current README uses the icon-and-heading hero plus two actual screenshots and does not embed the brown wordmark.
+The current README uses that icon-and-heading hero plus two actual screenshots. The horizontal wordmark is reserved for the centered app header and light-surface documentation/print use.
 
 ## Brand colours observed in the assets
 

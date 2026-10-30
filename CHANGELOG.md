@@ -6,9 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Centered the horizontal wordmark in the header on a cream contrast plate, kept the status/theme/help controls top-right, and moved the File menu beside Clear board.
+- Moved the three-rule summary directly under the Puzzle canvas heading and removed redundant sidebar subtitles.
+- Replaced the footer status text with a "Made with ❤️ by knightlesssword" credit linking to GitHub; the local-first and solver-cap details remain in the help dialog.
+- Increased Undo/Redo and Solve puzzle button sizes.
+- Kept Validate because it writes the recovery autosave and records validation history; diagnostics continue to update live.
+
 ### Fixed
 
 - Placing a cat made the cell grow to the SVG's default 150 px height and overlap the rows beneath it, breaking the grid layout. Cat icons are now absolutely positioned and sized against the cell, and cells cannot expand past their grid track.
+- Applying a forced cat cleared the deduction set and disabled Next step until Solve was pressed again. The app now recomputes the remaining deductions automatically.
+- The new footer credit link relied on color alone; it now has a visible underline.
 
 ## [1.0.0] - 2026-10-30
 
@@ -22,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Solver status reporting for unique, ambiguous, no-solution, provisional, and inconclusive results.
 - Undo/redo, bounded activity history, named browser saves, automatic recovery before Validate or Solve, and JSON import/export.
 - Dark and light themes, responsive desktop/tablet/mobile layouts, reduced-motion handling, keyboard-accessible dialogs, focusable scroll regions, and skip navigation.
-- Supplied app icon and horizontal wordmark assets, including the icon as the header mark and local SVG favicon.
+- Supplied app icon and horizontal wordmark assets, including the icon as the local SVG favicon and the wordmark as the centered header brand.
 - Project documentation, issue and pull-request templates, MIT license, contribution guide, code of conduct, and security policy.
 - GitHub Actions deployment from `main` to `gh-pages`, publishing only the runtime HTML, CSS, JavaScript, app icon, and `.nojekyll`. The initial public site went live at <https://knightlesssword.github.io/meowdoku-solver/> on 2026-10-30.
 

@@ -99,9 +99,9 @@ Any static server works. There is no `npm install`, build command, or generated 
 1. Enter a puzzle name and choose a board size.
 2. Paint regions with the twelve-colour palette. Use **Erase** to remove paint and any cat in a cell.
 3. Switch to **Cat** to place or remove manual cats.
-4. Run **Validate** for live structural diagnostics. This also writes the automatic recovery point.
+4. Run **Validate** to record an explicit validation and write the automatic recovery point. Diagnostics also update live as you paint.
 5. Run **Solve puzzle** to enumerate arrangements.
-6. Review **Candidate locations** and **Next deduction**. Use **Next step** and **Place this cat** only when the result is complete enough to support a forced placement.
+6. Review **Candidate locations** and **Next deduction**. Use **Next step** to inspect each forced placement; **Place this cat** applies it and refreshes the remaining deductions.
 7. Save a named puzzle in this browser, or use **File → Export JSON** for a portable copy.
 
 Useful shortcuts: arrow keys move around the board; <kbd>Enter</kbd> or <kbd>Space</kbd> applies the active mode; <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Z</kbd> undoes; <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> redoes; <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>S</kbd> saves; <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>O</kbd> opens the saved-puzzle list.
@@ -161,8 +161,8 @@ A structurally valid file can still describe an incomplete or rule-breaking puzz
 │   └── app.js                 # State, rendering, validation, solver, persistence
 ├── assets/
 │   ├── branding/
-│   │   ├── app-icon.svg       # Header mark and favicon
-│   │   └── logo-horizontal.svg
+│   │   ├── app-icon.svg       # Favicon
+│   │   └── logo-horizontal.svg # Header wordmark
 │   └── screenshots/           # Actual app captures used by this README
 ├── docs/
 │   ├── ARCHITECTURE.md
